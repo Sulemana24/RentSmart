@@ -1,6 +1,26 @@
 import Link from "next/link";
 
-export default function PropertyCard({ property }) {
+interface Address {
+  city: string;
+  state: string;
+}
+
+interface Property {
+  id: number;
+  name: string;
+  image: string;
+  price: number;
+  rating: number;
+  discount?: number;
+  address?: Address;
+  category?: string[];
+}
+
+interface PropertyCardProps {
+  property: Property;
+}
+
+export default function PropertyCard({ property }: PropertyCardProps) {
   return (
     <Link href={`/property/${property.id}`} passHref>
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 dark:border-gray-800">

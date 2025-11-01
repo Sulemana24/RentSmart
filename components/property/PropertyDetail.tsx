@@ -33,8 +33,6 @@ export default function PropertyDetail({ property }: { property: any }) {
     return `${min}-${max} year tenancy options`;
   };
 
-  const getNumberOfBeds = () => {};
-
   const getAgentFeeText = () => {
     if (property.agentFeePercentage === 0) {
       return "No agent fees";
@@ -340,7 +338,7 @@ export default function PropertyDetail({ property }: { property: any }) {
             <ReviewSection reviews={property.reviews || []} />
 
             {/* Review Button */}
-            <button className="w-full bg-gradient-to-r from-[#FF4FA1] to-[#00CFFF] text-white py-3 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+            <button className="w-full bg-gray-500 text-white py-3 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-300">
               Write a Review
             </button>
           </div>
@@ -352,9 +350,6 @@ export default function PropertyDetail({ property }: { property: any }) {
                 price={property.price}
                 onBookNow={handleBookNow}
                 onContact={handleContact}
-                duration={getDurationText()}
-                agentFees={getAgentFeeText()}
-                walkingFee={getWalkingFeeText()}
               />
             </div>
           </div>
