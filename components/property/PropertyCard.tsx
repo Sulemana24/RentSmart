@@ -32,7 +32,7 @@ export default function PropertyCard({ property }) {
           </h3>
 
           <p className="text-gray-500 text-sm flex items-center gap-1">
-            📍 {property.address?.city}, {property.address?.country}
+            📍 {property.address?.city}, {property.address?.state}
           </p>
 
           {/* Category Tags */}
@@ -50,7 +50,7 @@ export default function PropertyCard({ property }) {
           {/* Price + CTA */}
           <div className="flex items-center justify-between mt-4">
             <p className="text-lg font-bold text-pink-600">
-              Ghc{property.price}/month
+              Ghc{property.price}/year
             </p>
             <button className="text-sm font-semibold text-white bg-pink-600 hover:bg-pink-700 transition px-4 py-2 rounded-xl shadow">
               View Details

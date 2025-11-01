@@ -9,12 +9,12 @@ export interface PropertyProps {
   rating: number;
   category: string[];
   price: number;
-  offers: {
-    bed: string;
-    shower: string;
-    occupants: string;
-  };
+  agentFeePercentage?: number;
+  walkingFee?: number;
+  acceptableDurations: number[];
+  beds?: number;
   image: string;
+  images: string[];
   discount: string;
   description?: string;
   amenities?: string[];

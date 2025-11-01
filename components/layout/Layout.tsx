@@ -4,13 +4,12 @@ import Footer from "./Footer";
 
 interface LayoutProps {
   children: React.ReactNode;
-  onSearch?: (searchData: { query: string; bedroomType: string }) => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, onSearch }) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <>
-      <Header onSearch={onSearch} />
+      <Header />
       <main className="min-h-screen my-10 mx-4">{children}</main>
       <Footer />
     </>

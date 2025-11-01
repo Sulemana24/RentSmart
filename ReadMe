@@ -1,0 +1,175 @@
+# 🏠 RentSmart
+
+RentSmart is a modern real estate web application built with **Next.js**, **TypeScript**, and **Tailwind CSS** that allows users to explore, view, and book beautiful rental properties.  
+The platform features smooth navigation, responsive design, and a delightful user experience — making it easy to find your next perfect home or getaway.
+
+---
+
+## 🚀 Features
+
+### 🏡 Property Listings
+
+- Browse a curated list of properties with images, names, prices, and locations.
+- Beautifully styled **property cards** with hover effects.
+- Responsive grid layout — **2 cards on small screens**, **3 cards on large screens**.
+
+### 🏡 Dashboards
+
+- Tenant Dashboard
+- Landlord Dashboard
+- Admin Dashboard
+
+### 🔍 Property Details Page
+
+- Dynamic route for each property (`/properties/[id]`).
+- Large **image banner** with property title and gradient overlay.
+- Displays key details such as:
+  - Location
+  - Description
+  - Amenities
+  - Customer Reviews
+  - Rating
+  - Price per night
+
+### 💬 Reviews Section
+
+- Clean, card-style design for guest reviews.
+- Displays reviewer name, comment, and optional rating stars.
+
+### 💸 Booking Section
+
+- Sticky booking card on the right side for easy access.
+- Displays pricing and a call-to-action to book the property.
+
+### 🧭 Layout System
+
+- Global **Header** and **Footer** for consistent navigation.
+- Wrapped with a reusable **Layout component**.
+
+### 🧱 Data Management
+
+- Supports **mock property data** for local development.
+- Scalable structure to integrate API endpoints later (`/api/properties`, `/api/properties/[id]`).
+
+### 🎨 Modern UI & UX
+
+- Built with **Tailwind CSS** for fast, consistent styling.
+- Includes **glassmorphic** and **gradient effects**.
+- Smooth animations and transitions.
+- Dark mode ready (via `dark:` Tailwind classes).
+
+---
+
+## 🛠️ Tech Stack
+
+| Category             | Technology                        |
+| -------------------- | --------------------------------- |
+| **Framework**        | [Next.js 14](https://nextjs.org/) |
+| **Language**         | TypeScript                        |
+| **Styling**          | Tailwind CSS                      |
+| **Data Fetching**    | Axios                             |
+| **UI Components**    | Custom React components           |
+| **State Management** | React Hooks                       |
+| **Deployment**       | Vercel (recommended)              |
+
+---
+
+## 📂 Project Structure
+
+RentSmart/
+│
+├── app/
+│ ├── (tabs)/
+│ │ ├── index.tsx # Home screen with listings
+│ │ ├── explore.tsx # Explore screen (optional)
+│ │ └── \_layout.tsx
+│
+├── components/
+│ ├── layout/
+│ │ ├── Header.tsx
+│ │ ├── Footer.tsx
+│ │ └── Layout.tsx
+│ ├── property/
+│ │ ├── PropertyCard.tsx
+│ │ ├── PropertyDetail.tsx
+│ │ ├── BookingSection.tsx
+│ │ └── ReviewSection.tsx
+│
+├── pages/
+│ ├── index.tsx
+│ └── properties/[id].tsx
+│
+├── public/
+│ └── images/
+│
+├── styles/
+│ └── globals.css
+│
+└── README.md
+
+---
+
+## 🧑‍💻 Getting Started
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone "Url"
+cd rentsmart
+```
+
+npm install
+
+# or
+
+yarn install
+
+npm run dev
+
+# or
+
+yarn dev
+
+🧪 Mock Data Example
+
+Here’s an example of how property data is structured:
+
+{
+id: 1,
+name: "Modern Beachfront Villa",
+location: "Yendi, Ghana",
+price: 220,
+rating: 4.8,
+image: "/images/villa.jpg",
+description: "A stunning villa with ocean views and modern amenities.",
+amenities: ["Free WiFi", "Private Pool", "Air Conditioning", "Kitchen"],
+reviews: [
+{ id: 1, author: "Hawa", comment: "Loved the view!", rating: 5 },
+{ id: 2, author: "Bindawd.", comment: "Clean and peaceful.", rating: 4 }
+]
+}
+
+💡 Future Enhancements
+
+🔗 Connect to a real backend (Node.js or Supabase).
+
+🔒 Add authentication and user profiles.
+
+❤️ Add a “Save to Favorites” feature.
+
+📱 Optimize for mobile app integration (React Native or Expo).
+
+🧑‍🎨 Author
+
+Iddrisu Sulemana
+
+Frontend Developer | UI/UX Designer | ALX ProDev Student
+🔗 LinkedIn Profile https://www.linkedin.com/in/iddrisu-sulemana/
+
+💌 iddrisusulemana66@gmail.com
+
+🪄 License
+
+This project is licensed under the MIT License — you are free to use and modify it for personal or commercial purposes.
+
+✨ “Find your favorite place here — with RentSmart.”
