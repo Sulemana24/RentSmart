@@ -2,9 +2,10 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import PropertyCard from "../components/property/PropertyCard";
 import { PROPERTYLISTINGSAMPLE } from "../constants/index";
+import { PropertyProps } from "@/interfaces"; // Add this import
 
 export default function Home() {
-  const [properties, setProperties] = useState([]);
+  const [properties, setProperties] = useState<PropertyProps[]>([]); // Add type here
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
