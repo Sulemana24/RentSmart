@@ -1,23 +1,8 @@
 import Link from "next/link";
-
-interface Address {
-  city: string;
-  state: string;
-}
-
-interface Property {
-  id: number;
-  name: string;
-  image: string;
-  price: number;
-  rating: number;
-  discount?: number;
-  address?: Address;
-  category?: string[];
-}
+import { PropertyProps } from "@/interfaces";
 
 interface PropertyCardProps {
-  property: Property;
+  property: PropertyProps;
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
@@ -32,30 +17,26 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
 
-          {/* Discount Badge */}
           {property.discount && (
             <span className="absolute top-3 left-3 bg-pink-600 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md">
               -{property.discount}%
             </span>
           )}
 
-          {/* Rating Badge */}
           <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-medium px-2 py-1 rounded-full shadow">
             ⭐ {property.rating}
           </div>
         </div>
 
-        {/* Content Section */}
         <div className="p-5 space-y-2">
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white truncate">
             {property.name}
           </h3>
 
           <p className="text-gray-500 text-sm flex items-center gap-1">
-            📍 {property.address?.city}, {property.address?.state}
+            📍 {property.address.city}, {property.address.state}
           </p>
 
-          {/* Category Tags */}
           <div className="flex flex-wrap gap-2 mt-2">
             {property.category?.slice(0, 2).map((tag, index) => (
               <span
@@ -67,7 +48,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             ))}
           </div>
 
-          {/* Price + CTA */}
           <div className="flex items-center justify-between mt-4">
             <p className="text-lg font-bold text-pink-600">
               Ghc{property.price}/year

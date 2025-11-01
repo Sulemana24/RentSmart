@@ -35,57 +35,27 @@ const Header: React.FC = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {["Rooms", "Hostel"].map((item) => (
+            {/* Properties Link */}
+            <a
+              href="#"
+              className="text-gray-700 hover:text-[#FF4FA1] px-3 py-2 text-sm font-medium"
+            >
+              Properties
+            </a>
+
+            {/* Additional Navigation Items */}
+            {["About", "Contact"].map((item) => (
               <a
                 key={item}
                 href="#"
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                className="text-gray-700 hover:text-[#FF4FA1] px-3 py-2 text-sm font-medium"
               >
                 {item}
               </a>
             ))}
-
-            {/* Apartment Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setApartmentDropdownOpen(!apartmentDropdownOpen)}
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center"
-              >
-                Apartment
-                <svg
-                  className={`ml-1 w-4 h-4 transition-transform ${
-                    apartmentDropdownOpen ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-
-              {apartmentDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                  {apartmentTypes.map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => handleApartmentTypeSelect(type)}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-lg last:rounded-b-lg"
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
           </nav>
 
-          {/* Search Bar - hide on small screens */}
+          {/* Search Bar */}
           <div className="hidden md:flex flex-1 max-w-lg mx-8">
             <form onSubmit={handleSearch} className="relative w-full">
               <input
@@ -118,8 +88,8 @@ const Header: React.FC = () => {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
-              Sign In
+            <button className="bg-[#00CFFF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#FF4FA1] transition">
+              Booking Status
             </button>
             <button className="bg-[#FF4FA1] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#00CFFF] transition">
               Sign Up
@@ -163,34 +133,24 @@ const Header: React.FC = () => {
       {menuOpen && (
         <div className="md:hidden px-4 pb-4 space-y-3">
           <nav className="flex flex-col space-y-2">
-            {["Rooms", "Hostel"].map((item) => (
+            {/* Properties Link */}
+            <a
+              href="#"
+              className="text-gray-700 hover:text-[#FF4FA1] block px-3 py-2 text-sm font-medium"
+            >
+              Properties
+            </a>
+
+            {/* Additional Mobile Navigation Items */}
+            {["About", "Contact"].map((item) => (
               <a
                 key={item}
                 href="#"
-                className="text-gray-700 hover:text-gray-900 block px-3 py-2 text-sm font-medium"
+                className="text-gray-700 hover:text-[#FF4FA1] block px-3 py-2 text-sm font-medium"
               >
                 {item}
               </a>
             ))}
-
-            {/* Mobile Apartment Dropdown */}
-            <div className="space-y-1">
-              <div className="text-gray-700 px-3 py-2 text-sm font-medium">
-                Apartment Types:
-              </div>
-              {apartmentTypes.map((type) => (
-                <button
-                  key={type}
-                  onClick={() => {
-                    handleApartmentTypeSelect(type);
-                    setMenuOpen(false);
-                  }}
-                  className="block w-full text-left text-gray-600 hover:text-gray-900 px-6 py-1 text-sm"
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
           </nav>
 
           {/* Mobile Search */}
@@ -208,8 +168,8 @@ const Header: React.FC = () => {
 
           {/* Mobile Auth Buttons */}
           <div className="mt-3 flex flex-col space-y-2">
-            <button className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium text-left">
-              Sign In
+            <button className="bg-[#00CFFF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#FF4FA1] transition">
+              Booking Status
             </button>
             <button className="bg-[#FF4FA1] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#00CFFF] transition">
               Sign Up
