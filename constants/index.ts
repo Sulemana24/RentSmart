@@ -32,6 +32,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img1.src,
     images: [img1.src, img2.src, img3.src, img4.src],
     discount: "",
+    host: "Maltiti",
     description:
       "Experience the ultimate beachfront luxury at Villa Ocean Breeze. This stunning villa offers breathtaking ocean views, a private pool, and modern amenities to ensure a comfortable and memorable stay.",
     amenities: ["Free WiFi", "Pool", "Air Conditioning", "Kitchen"],
@@ -58,6 +59,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img2.src,
     images: [img2.src, img1.src, img5.src],
     discount: "30",
+    host: "Maltiti",
     description:
       "Escape into the serene mountains with this rustic yet modern chalet. Ideal for family trips, it offers a cozy fireplace and breathtaking views of the surrounding peaks.",
     amenities: ["Fireplace", "Free WiFi", "Heating", "Balcony", "Kitchen"],
@@ -92,6 +94,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img3.src,
     images: [img3.src, img6.src, img7.src],
     discount: "",
+    host: "Maltiti",
     description:
       "This desert retreat is perfect for those seeking peace and quiet. Watch the sunset over the desert landscape and enjoy a night under the stars.",
     amenities: [
@@ -117,8 +120,8 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     id: 4,
     name: "City Lights Penthouse",
     address: {
-      state: "Greater Accra Region",
-      city: "Tema",
+      state: "Northern Region",
+      city: "Yendi",
       country: "Ghana",
     },
     rating: 4.85,
@@ -131,6 +134,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img4.src,
     images: [img4.src, img8.src, img9.src, img10.src],
     discount: "15",
+    host: "Maltiti",
     description:
       "A luxurious penthouse in the heart of the city. Floor-to-ceiling windows give you panoramic views of the skyline and a modern living space.",
     amenities: ["High-speed WiFi", "24h Concierge", "Rooftop Access", "Gym"],
@@ -161,6 +165,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img5.src,
     images: [img5.src, img11.src, img12.src],
     discount: "20",
+    host: "Maltiti",
     description:
       "Relax by the riverside in this peaceful cabin. Guests can enjoy the serene environment or have a quiet evening by the water.",
     amenities: ["Private Dock", "Fireplace", "Outdoor Grill"],
@@ -191,6 +196,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img6.src,
     images: [img6.src, img13.src, img1.src, img2.src],
     discount: "",
+    host: "Maltiti",
     description:
       "Luxury meets relaxation in this beachfront villa with a private pool. Guests enjoy excellent service and direct beach access.",
     amenities: ["Infinity Pool", "Beach Access", "Air Conditioning"],
@@ -221,6 +227,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img7.src,
     images: [img7.src, img3.src],
     discount: "10",
+    host: "Maltiti",
     description:
       "Enjoy the beautiful lake views from this comfortable chalet with access to hiking trails.",
     amenities: ["Lake Access", "Hiking Trails", "Fireplace", "Kitchen"],
@@ -229,8 +236,8 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     id: 8,
     name: "Tropical Garden Villa",
     address: {
-      state: "Greater Accra Region",
-      city: "Accra",
+      state: "Upper West Region",
+      city: "Wa",
       country: "Ghana",
     },
     rating: 4.8,
@@ -243,6 +250,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img8.src,
     images: [img8.src, img4.src, img5.src],
     discount: "25",
+    host: "Maltiti",
     description:
       "A beautiful villa surrounded by tropical gardens, offering privacy and comfort.",
   },
@@ -250,8 +258,8 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     id: 9,
     name: "Urban Loft",
     address: {
-      state: "Ashanti Region",
-      city: "Kumasi",
+      state: "Northern Region",
+      city: "Tamale",
       country: "Ghana",
     },
     rating: 4.6,
@@ -264,6 +272,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img9.src,
     images: [img9.src, img6.src],
     discount: "",
+    host: "Maltiti",
     description:
       "Modern urban living in the heart of the city with all amenities within reach.",
     amenities: ["Free WiFi", "City Center Location", "Air Conditioning"],
@@ -294,6 +303,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img10.src,
     images: [img10.src, img7.src, img8.src],
     discount: "40",
+    host: "Maltiti",
     description:
       "A secluded cabin nestled in the forest, perfect for those seeking tranquility and nature.",
     amenities: ["Hot Tub", "Forest View", "Fireplace", "Kitchen"],
@@ -324,6 +334,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img11.src,
     images: [img11.src, img9.src, img10.src, img12.src],
     discount: "50",
+    host: "Maltiti",
     description:
       "Stunning cliffside villa with infinity pool and breathtaking sea views.",
     amenities: ["Infinity Pool", "Sea View", "Air Conditioning"],
@@ -354,6 +365,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img12.src,
     images: [img12.src, img13.src, img1.src],
     discount: "",
+    host: "Maltiti",
     description:
       "Beautiful coastal villa with direct beach access and pet-friendly amenities.",
     amenities: ["Beach Access", "Pet Friendly", "Air Conditioning"],
@@ -384,6 +396,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img13.src,
     images: [img13.src, img2.src, img3.src],
     discount: "35",
+    host: "Maltiti",
     description:
       "Experience Ghana's rich history in this beautifully preserved historical villa.",
     amenities: ["Historical Building", "Free Breakfast", "Air Conditioning"],
@@ -414,6 +427,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img1.src,
     images: [img1.src, img4.src],
     discount: "",
+    host: "Maltiti",
     description:
       "Convenient downtown apartment with easy access to public transport and city amenities.",
     amenities: ["City Center", "Public Transport Access", "Air Conditioning"],
@@ -430,7 +444,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     id: 15,
     name: "Luxury Safari Lodge",
     address: {
-      state: "Northern Region",
+      state: "Savanna Region",
       city: "Mole",
       country: "Ghana",
     },
@@ -444,6 +458,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img2.src,
     images: [img2.src, img5.src, img6.src, img7.src],
     discount: "20",
+    host: "Maltiti",
     description:
       "Luxury lodge experience with guided safari tours in Ghana's beautiful national park.",
     amenities: ["Guided Tours", "Free Breakfast", "Air Conditioning"],
@@ -474,6 +489,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img3.src,
     images: [img3.src, img8.src],
     discount: "25",
+    host: "Maltiti",
     description:
       "Charming countryside cottage surrounded by nature, perfect for a peaceful retreat.",
     amenities: ["Countryside Location", "Fireplace", "Kitchen"],
@@ -490,8 +506,8 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     id: 17,
     name: "Riverfront Mansion",
     address: {
-      state: "Volta Region",
-      city: "Ada",
+      state: "Upper East",
+      city: "Bolga",
       country: "Ghana",
     },
     rating: 4.86,
@@ -504,6 +520,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img4.src,
     images: [img4.src, img9.src, img10.src, img11.src],
     discount: "30",
+    host: "Maltiti",
     description:
       "Magnificent riverfront mansion with private garden and stunning water views.",
     amenities: ["Riverfront", "Private Garden", "Air Conditioning"],
@@ -524,8 +541,8 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     id: 18,
     name: "Mountain View Chalet",
     address: {
-      state: "Eastern Region",
-      city: "Mpraeso",
+      state: "Northern Region",
+      city: "Yendi",
       country: "Ghana",
     },
     rating: 4.75,
@@ -538,6 +555,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img5.src,
     images: [img5.src, img12.src, img13.src],
     discount: "",
+    host: "Maltiti",
     description:
       "Beautiful chalet with stunning mountain views and access to hiking trails.",
     amenities: ["Mountain View", "Hiking Access", "Fireplace", "Kitchen"],
@@ -546,8 +564,8 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     id: 19,
     name: "Island Paradise Villa",
     address: {
-      state: "Greater Accra Region",
-      city: "Kokrobite",
+      state: "Northern Region",
+      city: "Sagnarigu",
       country: "Ghana",
     },
     rating: 4.98,
@@ -560,6 +578,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img6.src,
     images: [img6.src, img1.src, img2.src, img3.src],
     discount: "60",
+    host: "Maltiti",
     description:
       "Luxury island-style villa with private pool and excellent service near the beach.",
     amenities: ["Private Pool", "Beach Access", "Air Conditioning"],
@@ -590,6 +609,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     image: img7.src,
     images: [img7.src, img4.src, img5.src],
     discount: "",
+    host: "Maltiti",
     description:
       "Breathtaking clifftop retreat with private pool and panoramic ocean views.",
     amenities: ["Private Pool", "Ocean View", "Air Conditioning"],

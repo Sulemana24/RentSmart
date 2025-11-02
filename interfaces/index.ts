@@ -10,6 +10,24 @@ export interface Address {
   country: string;
 }
 
+export interface BookingDetails {
+  id?: string;
+  propertyId: number;
+  propertyName: string;
+  propertyImage: string;
+  startDate: string;
+  duration: number;
+  price: number;
+  totalPropertyPrice: number;
+  agentFeePercentage: number;
+  agentFee: number;
+  walkingFee: number;
+  subtotal: number;
+  total: number;
+  status?: "pending" | "confirmed" | "completed";
+  host?: string;
+}
+
 export interface PropertyProps {
   id: number;
   name: string;
@@ -21,6 +39,7 @@ export interface PropertyProps {
   walkingFee: number;
   acceptableDurations: number[];
   beds: number;
+  host?: string;
   image: string;
   images: string[];
   discount?: string;
