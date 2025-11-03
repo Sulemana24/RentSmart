@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 interface LoginFormProps {
   onSwitchToSignup?: () => void;
@@ -49,7 +50,33 @@ const LoginForm: React.FC<LoginFormProps> = ({
         // Default behavior - redirect based on user type
         console.log("Login data:", formData);
         // Here you would typically handle authentication
-        alert(`Welcome back! Logging in as ${formData.userType}`);
+        const router = useRouter();
+
+        const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          setIsLoading(true);
+
+          try {
+            await new Promise((resolve) => setTimeout(resolve, 1500)); // fake delay
+
+            // Save user info (temporary mock auth)
+            localStorage.setItem("userType", formData.userType);
+
+            // Redirect based on role
+            if (formData.userType === "renter") {
+              router.push("/renter");
+            } else if (formData.userType === "homeowner") {
+              router.push("/homeowner");
+            } else if (formData.userType === "admin") {
+              router.push("/admin");
+            }
+          } catch (error) {
+            console.error("Login failed:", error);
+            alert("Login failed. Please try again.");
+          } finally {
+            setIsLoading(false);
+          }
+        };
       }
     } catch (error) {
       console.error("Login failed:", error);

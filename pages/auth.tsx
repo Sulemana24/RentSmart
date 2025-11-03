@@ -2,28 +2,27 @@
 import { useState } from "react";
 import LoginForm, { LoginData } from "../components/auth/LoginForm";
 import SignupForm, { SignupData } from "../components/auth/SignupForm";
+import { useRouter } from "next/router";
 
 type AuthMode = "login" | "signup";
 
 export default function AuthPage() {
   const [authMode, setAuthMode] = useState<AuthMode>("login");
+  const router = useRouter();
 
   const handleLogin = (data: LoginData) => {
-    console.log("Login attempt:", data);
-    // Handle login logic here
-    // Redirect based on user type
+    // Save role temporarily
+    localStorage.setItem("role", data.userType);
+
     switch (data.userType) {
       case "renter":
-        // Redirect to renter dashboard
-        window.location.href = "/";
+        router.push("/");
         break;
       case "homeowner":
-        // Redirect to homeowner dashboard
-        window.location.href = "/homeowner-dashboard";
+        router.push("/homeowner");
         break;
       case "admin":
-        // Redirect to admin dashboard
-        window.location.href = "/admin-dashboard";
+        router.push("/admin");
         break;
     }
   };
@@ -37,18 +36,14 @@ export default function AuthPage() {
         break;
       case "homeowner":
         // Redirect to homeowner dashboard
-        window.location.href = "/homeowner-dashboard";
+        window.location.href = "/homeowner";
         break;
       case "admin":
         // Redirect to admin dashboard
-        window.location.href = "/admin-dashboard";
+        window.location.href = "/admin";
         break;
     }
-    // Handle signup logic here
-    // After successful signup, you might want to:
-    // - Send verification email
-    // - Redirect to appropriate dashboard
-    // - Show success message
+
     alert(
       `Welcome ${data.firstName}! Your ${data.userType} account has been created.`
     );

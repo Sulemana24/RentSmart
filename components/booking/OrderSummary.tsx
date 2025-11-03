@@ -1,7 +1,7 @@
 const OrderSummary: React.FC<{ bookingDetails: any }> = ({
   bookingDetails,
 }) => (
-  <div className="bg-white p-6 rounded-2xl border-2 border-gray-100 shadow-lg">
+  <div className="">
     <h2 className="text-2xl font-bold text-gray-900 mb-6">
       Review Order Details
     </h2>

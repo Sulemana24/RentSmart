@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface SignupFormProps {
   onSwitchToLogin?: () => void;
@@ -35,6 +36,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const router = useRouter();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -72,7 +74,14 @@ const SignupForm: React.FC<SignupFormProps> = ({
       } else {
         // Default behavior
         console.log("Signup data:", formData);
-        alert(`Account created successfully! Welcome as ${formData.userType}`);
+        localStorage.setItem("userType", formData.userType);
+        if (formData.userType === "renter") {
+          router.push("/renter");
+        } else if (formData.userType === "homeowner") {
+          router.push("/homeowner");
+        } else {
+          router.push("/admin");
+        }
       }
     } catch (error) {
       console.error("Signup failed:", error);

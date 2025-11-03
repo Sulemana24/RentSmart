@@ -260,10 +260,10 @@ export default function TermsOfService() {
               <p className="text-gray-300 mb-4">
                 If you have any questions about these Terms, please contact us:
               </p>
-              <div className="bg-gray-700 p-6 rounded-lg border border-gray-600">
+              <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
                 <p className="text-gray-300">
                   <strong className="text-white">Email:</strong>{" "}
-                  iddrisusulemana665@gmail.com
+                  iddrisusulemana66 5@gmail.com
                   <br />
                   <strong className="text-white">Phone:</strong> +233 55 133
                   3780
