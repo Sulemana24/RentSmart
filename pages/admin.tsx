@@ -1,4 +1,3 @@
-// pages/admin.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -24,22 +23,6 @@ import adminData, {
   GUESTS as MOCK_GUESTS,
   MESSAGES as MOCK_MESSAGES,
 } from "@/constants/adminData";
-
-/**
- * Admin dashboard single-file page.
- * - imports mock data from src/data/adminData.ts
- * - responsive + collapsible sidebar
- * - tabs: Dashboard / Properties / Homeowners / Bookings / Guests / Communication
- * - search/filter at top of each table
- *
- * Note:
- * - This is client-only mock UI. Wire to your backend later.
- * - Tailwind classes are used (same theme as homeowner dashboard).
- */
-
-/* -------------------------
-  Helpers / Types (local)
-   ------------------------- */
 
 type Property = (typeof MOCK_PROPERTIES)[number];
 type Homeowner = (typeof MOCK_HOMEOWNERS)[number];
@@ -83,10 +66,10 @@ export default function AdminPage() {
 
   // load data from adminData
   const [properties, setProperties] = useState<Property[]>(
-    () => MOCK_PROPERTIES
+    () => MOCK_PROPERTIES,
   );
   const [homeowners, setHomeowners] = useState<Homeowner[]>(
-    () => MOCK_HOMEOWNERS
+    () => MOCK_HOMEOWNERS,
   );
   const [bookings, setBookings] = useState<Booking[]>(() => MOCK_BOOKINGS);
   const [guests, setGuests] = useState<Guest[]>(() => MOCK_GUESTS);
@@ -119,7 +102,7 @@ export default function AdminPage() {
         p.name.toLowerCase().includes(q) ||
         p.host?.toLowerCase().includes(q) ||
         p.address.city?.toLowerCase().includes(q) ||
-        String(p.price).includes(q)
+        String(p.price).includes(q),
     );
   }, [propQuery, properties]);
 
@@ -130,7 +113,7 @@ export default function AdminPage() {
       (h) =>
         h.name.toLowerCase().includes(q) ||
         h.email.toLowerCase().includes(q) ||
-        h.phone?.toLowerCase().includes(q)
+        h.phone?.toLowerCase().includes(q),
     );
   }, [homeownerQuery, homeowners]);
 
@@ -142,7 +125,7 @@ export default function AdminPage() {
         b.id.toLowerCase().includes(q) ||
         b.propertyName?.toLowerCase().includes(q) ||
         b.guestName?.toLowerCase().includes(q) ||
-        b.homeowner?.toLowerCase().includes(q)
+        b.homeowner?.toLowerCase().includes(q),
     );
   }, [bookingQuery, bookings]);
 
@@ -153,7 +136,7 @@ export default function AdminPage() {
       (g) =>
         g.name.toLowerCase().includes(q) ||
         g.email.toLowerCase().includes(q) ||
-        g.phone?.toLowerCase().includes(q)
+        g.phone?.toLowerCase().includes(q),
     );
   }, [guestQuery, guests]);
 
@@ -165,14 +148,14 @@ export default function AdminPage() {
         m.from.toLowerCase().includes(q) ||
         m.to.toLowerCase().includes(q) ||
         (m.property || "").toLowerCase().includes(q) ||
-        m.message.toLowerCase().includes(q)
+        m.message.toLowerCase().includes(q),
     );
   }, [messageQuery, messages]);
 
   // ACTIONS
   const confirmAndDelete = (
     type: "property" | "homeowner" | "booking" | "guest" | "message",
-    id: number | string
+    id: number | string,
   ) => {
     const ok = confirm("Are you sure? This action is irreversible.");
     if (!ok) return;
@@ -500,7 +483,7 @@ export default function AdminPage() {
                   <tbody>
                     {filteredHomeowners.map((h) => {
                       const count = properties.filter(
-                        (p) => p.host === h.name
+                        (p) => p.host === h.name,
                       ).length;
                       return (
                         <tr
@@ -649,11 +632,11 @@ export default function AdminPage() {
                   <tbody>
                     {filteredGuests.map((g) => {
                       const guestBookings = bookings.filter(
-                        (b) => b.guestName === g.name
+                        (b) => b.guestName === g.name,
                       );
                       const totalSpent = guestBookings.reduce(
                         (s, bk) => s + (bk.total || 0),
-                        0
+                        0,
                       );
                       return (
                         <tr

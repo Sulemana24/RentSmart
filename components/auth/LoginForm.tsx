@@ -2,6 +2,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import { useToast } from "../ToastProvider";
 
 interface LoginFormProps {
   onSwitchToSignup?: () => void;
@@ -25,9 +27,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { showToast } = useToast();
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -41,15 +44,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
     setIsLoading(true);
 
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       if (onSubmit) {
         onSubmit(formData);
       } else {
-        // Default behavior - redirect based on user type
-        console.log("Login data:", formData);
-        // Here you would typically handle authentication
         const router = useRouter();
 
         const handleSubmit = async (e: React.FormEvent) => {
@@ -57,30 +56,41 @@ const LoginForm: React.FC<LoginFormProps> = ({
           setIsLoading(true);
 
           try {
-            await new Promise((resolve) => setTimeout(resolve, 1500)); // fake delay
-
-            // Save user info (temporary mock auth)
+            await new Promise((resolve) => setTimeout(resolve, 1500));
             localStorage.setItem("userType", formData.userType);
 
-            // Redirect based on role
             if (formData.userType === "renter") {
+              showToast({
+                title: "Login Successful",
+                message: "You have successfully logged in as a renter.",
+                type: "success",
+              });
               router.push("/renter");
             } else if (formData.userType === "homeowner") {
+              showToast({
+                title: "Login Successful",
+                message: "You have successfully logged in as a Landlord/Agent.",
+                type: "success",
+              });
               router.push("/homeowner");
-            } else if (formData.userType === "admin") {
-              router.push("/admin");
             }
           } catch (error) {
-            console.error("Login failed:", error);
-            alert("Login failed. Please try again.");
+            showToast({
+              title: "Login Failed",
+              message: "An error occurred during login. Please try again.",
+              type: "error",
+            });
           } finally {
             setIsLoading(false);
           }
         };
       }
     } catch (error) {
-      console.error("Login failed:", error);
-      alert("Login failed. Please try again.");
+      showToast({
+        title: "Login Failed",
+        message: "An error occurred during login. Please try again.",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -110,8 +120,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white"
               >
                 <option value="renter">Renter / Tenant</option>
-                <option value="homeowner">Home Owner / Landlord</option>
-                <option value="admin">Administrator</option>
+                <option value="homeowner">Agent / Landlord</option>
               </select>
             </div>
 
@@ -127,7 +136,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
-                placeholder="your.email@example.com"
+                placeholder="Enter your email"
               />
             </div>
 
@@ -151,7 +160,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#00CFFF] transition-colors"
                 >
-                  {showPassword ? "🙈" : "👁️"}
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
             </div>

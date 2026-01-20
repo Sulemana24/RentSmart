@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { PropertyProps } from "@/interfaces";
+import { AiFillStar } from "react-icons/ai";
+import { FaLocationDot } from "react-icons/fa6";
 
 interface PropertyCardProps {
   property: PropertyProps;
@@ -23,8 +25,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             </span>
           )}
 
-          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-medium px-2 py-1 rounded-full shadow">
-            ⭐ {property.rating}
+          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-medium px-2 py-1 rounded-full shadow flex items-center">
+            <AiFillStar className="inline-block text-yellow-400 m-0.5 " />
+            {property.rating}
           </div>
         </div>
 
@@ -34,7 +37,8 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </h3>
 
           <p className="text-gray-500 text-sm flex items-center gap-1">
-            📍 {property.address.city}, {property.address.state}
+            <FaLocationDot className="" />
+            {property.address.city}, {property.address.state}
           </p>
 
           <div className="flex flex-wrap gap-2 mt-2">

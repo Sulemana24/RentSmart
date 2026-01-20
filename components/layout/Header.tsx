@@ -16,17 +16,14 @@ const Header: React.FC = () => {
   ];
 
   const handleSignUp = () => {
-    // Close mobile menu if open
     setMenuOpen(false);
-    // Redirect to auth page
+
     router.push("/auth");
   };
 
   const handleListProperty = () => {
-    // Close mobile menu if open
     setMenuOpen(false);
-    // Redirect to property listing page or auth if not logged in
-    // For now, redirect to auth with homeowner focus
+
     router.push("/auth");
   };
 

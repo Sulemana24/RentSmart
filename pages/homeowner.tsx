@@ -1,4 +1,3 @@
-// File: components/HomeownerDashboard.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -68,11 +67,11 @@ export default function HomeownerDashboard() {
 
   // data (load from mock)
   const [properties, setProperties] = useState<Property[]>(
-    () => MOCK_PROPERTIES
+    () => MOCK_PROPERTIES,
   );
   const [bookings, setBookings] = useState<Booking[]>(() => MOCK_BOOKINGS);
   const [payments, setPayments] = useState<PaymentMethod[]>(
-    () => MOCK_PAYMENTS
+    () => MOCK_PAYMENTS,
   );
   const [user, setUser] = useState(() => MOCK_USER);
   const [helpResources] = useState(() => MOCK_HELP);
@@ -100,7 +99,7 @@ export default function HomeownerDashboard() {
       (p) =>
         p.name.toLowerCase().includes(q) ||
         p.address.city.toLowerCase().includes(q) ||
-        String(p.price).includes(q)
+        String(p.price).includes(q),
     );
   }, [propQuery, properties]);
 
@@ -112,7 +111,7 @@ export default function HomeownerDashboard() {
         b.propertyName.toLowerCase().includes(q) ||
         b.guestName.toLowerCase().includes(q) ||
         b.id.toLowerCase().includes(q) ||
-        (b.status || "").toLowerCase().includes(q)
+        (b.status || "").toLowerCase().includes(q),
     );
   }, [bookingQuery, bookings]);
 
@@ -120,7 +119,7 @@ export default function HomeownerDashboard() {
     const q = paymentQuery.toLowerCase().trim();
     if (!q) return payments;
     return payments.filter(
-      (p) => p.brand.toLowerCase().includes(q) || p.last4.includes(q)
+      (p) => p.brand.toLowerCase().includes(q) || p.last4.includes(q),
     );
   }, [paymentQuery, payments]);
 
@@ -156,16 +155,16 @@ export default function HomeownerDashboard() {
 
   const handleEditProperty = (
     id: string | number,
-    updates: Partial<Property>
+    updates: Partial<Property>,
   ) => {
     setProperties((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
+      prev.map((p) => (p.id === id ? { ...p, ...updates } : p)),
     );
   };
 
   const handleBookingAction = (
     id: string | number,
-    action: "confirm" | "cancel"
+    action: "confirm" | "cancel",
   ) => {
     setBookings((prev) =>
       prev.map((b) => {
@@ -174,7 +173,7 @@ export default function HomeownerDashboard() {
           ...b,
           status: action === "confirm" ? "confirmed" : "cancelled",
         };
-      })
+      }),
     );
   };
 
@@ -634,7 +633,7 @@ export default function HomeownerDashboard() {
                         <button
                           onClick={() =>
                             setPayments((prev) =>
-                              prev.filter((m) => m.id !== p.id)
+                              prev.filter((m) => m.id !== p.id),
                             )
                           }
                           className="text-red-500 text-sm"
@@ -751,8 +750,8 @@ export default function HomeownerDashboard() {
                   {isEditingProperty
                     ? "Edit Property"
                     : selected
-                    ? "Details"
-                    : "Add Property"}
+                      ? "Details"
+                      : "Add Property"}
                 </h3>
                 <button
                   onClick={() => {

@@ -2,6 +2,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import { useToast } from "../ToastProvider";
 
 interface SignupFormProps {
   onSwitchToLogin?: () => void;
@@ -37,9 +39,10 @@ const SignupForm: React.FC<SignupFormProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
+  const { showToast } = useToast();
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
@@ -52,40 +55,45 @@ const SignupForm: React.FC<SignupFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!");
+      showToast({
+        title: "Password Mismatch",
+        message: "Please ensure your passwords match.",
+        type: "error",
+      });
       return;
     }
 
     if (!formData.agreeToTerms) {
-      alert("Please agree to the terms and conditions");
+      showToast({
+        title: "Terms Not Accepted",
+        message: "Please agree to the terms and conditions.",
+        type: "error",
+      });
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       if (onSubmit) {
         onSubmit(formData);
       } else {
-        // Default behavior
-        console.log("Signup data:", formData);
         localStorage.setItem("userType", formData.userType);
         if (formData.userType === "renter") {
           router.push("/renter");
         } else if (formData.userType === "homeowner") {
           router.push("/homeowner");
-        } else {
-          router.push("/admin");
         }
       }
     } catch (error) {
-      console.error("Signup failed:", error);
-      alert("Signup failed. Please try again.");
+      showToast({
+        title: "Signup Failed",
+        message: "An error occurred during signup. Please try again.",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -97,8 +105,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
         return "Looking to rent properties for short or long term stays";
       case "homeowner":
         return "Want to list and manage your properties for rent";
-      case "admin":
-        return "Platform administrator with full system access";
+
       default:
         return "";
     }
@@ -130,8 +137,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white mb-2"
               >
                 <option value="renter">Renter / Tenant</option>
-                <option value="homeowner">Home Owner / Landlord</option>
-                <option value="admin">Administrator</option>
+                <option value="homeowner">Agent / Landlord</option>
               </select>
               <p className="text-xs text-gray-400">
                 {getUserTypeDescription(formData.userType)}
@@ -182,7 +188,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
-                placeholder="your.email@example.com"
+                placeholder="Enter your email"
               />
             </div>
 
@@ -197,7 +203,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
-                placeholder="+233 XX XXX XXXX"
+                placeholder="020XXXXXXX"
               />
             </div>
 
@@ -222,7 +228,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#00CFFF] transition-colors"
                   >
-                    {showPassword ? "🙈" : "👁️"}
+                    {showPassword ? <FiEyeOff /> : <FiEye />}
                   </button>
                 </div>
               </div>
@@ -246,7 +252,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#00CFFF] transition-colors"
                   >
-                    {showConfirmPassword ? "🙈" : "👁️"}
+                    {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
                   </button>
                 </div>
               </div>

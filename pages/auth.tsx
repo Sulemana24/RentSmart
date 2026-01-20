@@ -3,15 +3,16 @@ import { useState } from "react";
 import LoginForm, { LoginData } from "../components/auth/LoginForm";
 import SignupForm, { SignupData } from "../components/auth/SignupForm";
 import { useRouter } from "next/router";
+import { useToast } from "@/components/ToastProvider";
 
 type AuthMode = "login" | "signup";
 
 export default function AuthPage() {
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const router = useRouter();
+  const { showToast } = useToast();
 
   const handleLogin = (data: LoginData) => {
-    // Save role temporarily
     localStorage.setItem("role", data.userType);
 
     switch (data.userType) {
@@ -31,22 +32,21 @@ export default function AuthPage() {
     console.log("Signup attempt:", data);
     switch (data.userType) {
       case "renter":
-        // Redirect to renter dashboard
         window.location.href = "/";
         break;
       case "homeowner":
-        // Redirect to homeowner dashboard
         window.location.href = "/homeowner";
         break;
       case "admin":
-        // Redirect to admin dashboard
         window.location.href = "/admin";
         break;
     }
 
-    alert(
-      `Welcome ${data.firstName}! Your ${data.userType} account has been created.`
-    );
+    showToast({
+      title: "Signup Successful",
+      message: `Welcome ${data.firstName}! Your ${data.userType} account has been created.`,
+      type: "success",
+    });
   };
 
   return (

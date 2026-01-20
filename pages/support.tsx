@@ -4,14 +4,14 @@ export default function SupportPage() {
       icon: "📧",
       title: "Email Support",
       description: "Get help via email",
-      details: "support@rentsmart.com",
+      details: "iddrisusulemana665@gmail.com",
       responseTime: "Within 24 hours",
     },
     {
       icon: "📞",
       title: "Phone Support",
       description: "Call our support team",
-      details: "+233 XX XXX XXXX",
+      details: "+233 55 133 3780",
       responseTime: "Mon-Fri, 8AM-6PM",
     },
     {
