@@ -1,9 +1,11 @@
 "use client";
+
 import { useState } from "react";
 import LoginForm, { LoginData } from "../components/auth/LoginForm";
 import SignupForm, { SignupData } from "../components/auth/SignupForm";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
+import { loginUser, signupUser, getUserRole } from "@/lib/auth";
 
 type AuthMode = "login" | "signup";
 
@@ -12,41 +14,53 @@ export default function AuthPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const handleLogin = (data: LoginData) => {
-    localStorage.setItem("role", data.userType);
+  const handleLogin = async (data: LoginData) => {
+    try {
+      const user = await loginUser(data.email, data.password);
+      const role = await getUserRole(user.uid);
 
-    switch (data.userType) {
-      case "renter":
-        router.push("/");
-        break;
-      case "homeowner":
-        router.push("/homeowner");
-        break;
-      case "admin":
-        router.push("/admin");
-        break;
+      if (!role) throw new Error("User role not found");
+
+      localStorage.setItem("role", role);
+
+      if (role === "renter") router.push("/");
+      if (role === "homeowner") router.push("/homeowner");
+      if (role === "admin") router.push("/admin");
+    } catch (err: any) {
+      showToast({
+        title: "Login failed",
+        message: err.message || "Invalid credentials",
+        type: "error",
+      });
     }
   };
 
-  const handleSignup = (data: SignupData) => {
-    console.log("Signup attempt:", data);
-    switch (data.userType) {
-      case "renter":
-        window.location.href = "/";
-        break;
-      case "homeowner":
-        window.location.href = "/homeowner";
-        break;
-      case "admin":
-        window.location.href = "/admin";
-        break;
-    }
+  // 🆕 SIGNUP
+  const handleSignup = async (data: SignupData) => {
+    try {
+      if (data.userType === "admin") {
+        throw new Error("Admin accounts are created internally");
+      }
 
-    showToast({
-      title: "Signup Successful",
-      message: `Welcome ${data.firstName}! Your ${data.userType} account has been created.`,
-      type: "success",
-    });
+      const user = await signupUser(data.email, data.password, data);
+
+      localStorage.setItem("role", data.userType);
+
+      if (data.userType === "renter") router.push("/");
+      if (data.userType === "homeowner") router.push("/homeowner");
+
+      showToast({
+        title: "Signup Successful",
+        message: `Welcome ${data.firstName}!`,
+        type: "success",
+      });
+    } catch (err: any) {
+      showToast({
+        title: "Signup failed",
+        message: err.message || "Something went wrong",
+        type: "error",
+      });
+    }
   };
 
   return (
