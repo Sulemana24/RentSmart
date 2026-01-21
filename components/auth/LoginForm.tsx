@@ -3,7 +3,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { FcGoogle } from "react-icons/fc";
 import { useToast } from "../ToastProvider";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 interface LoginFormProps {
   onSwitchToSignup?: () => void;
@@ -16,16 +24,56 @@ export interface LoginData {
   userType: "renter" | "homeowner" | "admin";
 }
 
+export const saveUserToFirestore = async (
+  user: any,
+  role: string,
+  extraData?: any,
+) => {
+  const uid = user.uid;
+  const userSnap = await getDoc(doc(db, "users", uid));
+
+  if (!userSnap.exists()) {
+    const firstName =
+      extraData?.firstName || user.displayName?.split(" ")[0] || "";
+    const lastName =
+      extraData?.lastName ||
+      user.displayName?.split(" ").slice(1).join(" ") ||
+      "";
+    const phone = extraData?.phone || "";
+    const isGoogleAccount = !!user.providerData.find((p: any) =>
+      p.providerId.includes("google"),
+    );
+    const photoURL = user.photoURL || "";
+
+    await setDoc(doc(db, "users", uid), {
+      uid,
+      email: user.email,
+      firstName,
+      lastName,
+      phone,
+      role,
+      isGoogleAccount,
+      photoURL,
+      createdAt: serverTimestamp(),
+    });
+  }
+
+  return getDoc(doc(db, "users", uid));
+};
+
 const LoginForm: React.FC<LoginFormProps> = ({
   onSwitchToSignup,
   onSubmit,
 }) => {
+  const router = useRouter();
   const [formData, setFormData] = useState<LoginData>({
     email: "",
     password: "",
     userType: "renter",
   });
+
   const [isLoading, setIsLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { showToast } = useToast();
 
@@ -44,55 +92,118 @@ const LoginForm: React.FC<LoginFormProps> = ({
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const userCred = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password,
+      );
 
-      if (onSubmit) {
-        onSubmit(formData);
-      } else {
-        const router = useRouter();
+      const uid = userCred.user.uid;
 
-        const handleSubmit = async (e: React.FormEvent) => {
-          e.preventDefault();
-          setIsLoading(true);
+      const userSnap = await getDoc(doc(db, "users", uid));
 
-          try {
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            localStorage.setItem("userType", formData.userType);
-
-            if (formData.userType === "renter") {
-              showToast({
-                title: "Login Successful",
-                message: "You have successfully logged in as a renter.",
-                type: "success",
-              });
-              router.push("/renter");
-            } else if (formData.userType === "homeowner") {
-              showToast({
-                title: "Login Successful",
-                message: "You have successfully logged in as a Landlord/Agent.",
-                type: "success",
-              });
-              router.push("/homeowner");
-            }
-          } catch (error) {
-            showToast({
-              title: "Login Failed",
-              message: "An error occurred during login. Please try again.",
-              type: "error",
-            });
-          } finally {
-            setIsLoading(false);
-          }
-        };
+      if (!userSnap.exists()) {
+        throw new Error("User profile not found");
       }
-    } catch (error) {
+
+      const { role } = userSnap.data();
+
+      localStorage.setItem("role", role);
+
+      if (role === "renter") {
+        router.push("/");
+      } else if (role === "homeowner") {
+        router.push("/homeowner");
+      } else if (role === "admin") {
+        router.push("/admin");
+      }
+
+      showToast({
+        title: "Login Successful",
+        message: "Welcome back!",
+        type: "success",
+      });
+    } catch (error: any) {
       showToast({
         title: "Login Failed",
-        message: "An error occurred during login. Please try again.",
+        message:
+          error.code === "auth/invalid-credential"
+            ? "Invalid email or password"
+            : error.message || "Login failed",
         type: "error",
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+
+    const provider = new GoogleAuthProvider();
+
+    try {
+      provider.addScope("profile");
+      provider.addScope("email");
+
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const uid = user.uid;
+      const email = user.email || "";
+
+      const userSnap = await getDoc(doc(db, "users", uid));
+
+      if (!userSnap.exists()) {
+        const defaultRole = formData.userType;
+        const userDoc = await saveUserToFirestore(user, formData.userType);
+        const userData = userDoc.data()!;
+        localStorage.setItem("role", userData.role);
+
+        showToast({
+          title: "Account Created",
+          message: "Your account has been created successfuly!",
+          type: "success",
+        });
+      } else {
+        const userData = userSnap.data();
+        localStorage.setItem("role", userData.role);
+
+        showToast({
+          title: "Login Successful",
+          message: "Welcome back!",
+          type: "success",
+        });
+      }
+
+      // Redirect based on role
+      const role = localStorage.getItem("role");
+      if (role === "renter") {
+        router.push("/");
+      } else if (role === "homeowner") {
+        router.push("/homeowner");
+      } else if (role === "admin") {
+        router.push("/admin");
+      }
+    } catch (error: any) {
+      console.error("Google login error:", error);
+
+      let errorMessage = "Google login failed";
+      if (error.code === "auth/popup-closed-by-user") {
+        errorMessage = "Login popup was closed";
+      } else if (error.code === "auth/popup-blocked") {
+        errorMessage =
+          "Popup blocked by browser. Please allow popups for this site.";
+      } else if (error.code === "auth/cancelled-popup-request") {
+        errorMessage = "Login was cancelled";
+      }
+
+      showToast({
+        title: "Google Login Failed",
+        message: errorMessage,
+        type: "error",
+      });
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -122,6 +233,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 <option value="renter">Renter / Tenant</option>
                 <option value="homeowner">Agent / Landlord</option>
               </select>
+              <p className="mt-1 text-xs text-gray-400">
+                Note: Google sign-in will use this selection for new accounts
+              </p>
             </div>
 
             {/* Email */}
@@ -186,7 +300,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || googleLoading}
               className="w-full bg-[#FF4FA1] text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
@@ -199,7 +313,38 @@ const LoginForm: React.FC<LoginFormProps> = ({
               )}
             </button>
 
-            {/* Divider */}
+            {/* Divider - Or continue with */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-gray-800 text-gray-400">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            {/* Google Login Button */}
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={googleLoading || isLoading}
+              className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {googleLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-800 mr-2"></div>
+                  Connecting...
+                </div>
+              ) : (
+                <>
+                  <FcGoogle className="w-5 h-5" />
+                  Continue with Google
+                </>
+              )}
+            </button>
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-600"></div>
@@ -211,7 +356,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
               </div>
             </div>
 
-            {/* Switch to Signup */}
             <button
               type="button"
               onClick={onSwitchToSignup}
