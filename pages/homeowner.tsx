@@ -1,1253 +1,1340 @@
 "use client";
-
-import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import {
-  Menu,
-  X,
-  Home,
-  List,
-  BookOpen,
-  User,
-  CreditCard,
-  MessageCircle,
-  Settings,
-  Eye,
-  Trash2,
-  Search,
-  Edit3,
-  Check,
-  XCircle,
-  Plus,
-} from "lucide-react";
+  FiHome,
+  FiPlus,
+  FiList,
+  FiCalendar,
+  FiDollarSign,
+  FiMessageSquare,
+  FiHelpCircle,
+  FiSettings,
+  FiTrendingUp,
+  FiUsers,
+  FiClock,
+  FiStar,
+  FiEye,
+  FiEdit,
+  FiTrash2,
+  FiCheck,
+  FiX,
+  FiDownload,
+  FiFilter,
+  FiSearch,
+  FiBell,
+  FiChevronRight,
+  FiChevronDown,
+  FiSun,
+  FiMoon,
+  FiLogOut,
+} from "react-icons/fi";
 
-// Import mock data from separate file
-import homeownerData, {
-  PROPERTIES as MOCK_PROPERTIES,
-  BOOKINGS as MOCK_BOOKINGS,
-  PAYMENTS as MOCK_PAYMENTS,
-  USER as MOCK_USER,
-  HELP_RESOURCES as MOCK_HELP,
-} from "@/constants/homeownerData";
-
-type Property = (typeof MOCK_PROPERTIES)[number];
-type Booking = (typeof MOCK_BOOKINGS)[number];
-type PaymentMethod = (typeof MOCK_PAYMENTS)[number];
-
-export default function HomeownerDashboard() {
+const HomeownerDashboard = () => {
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const router = useRouter();
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
 
-  // role protection: mock
   useEffect(() => {
-    try {
-      const role = localStorage.getItem("role");
-      if (role !== "homeowner") {
-        router.replace("/login");
-      }
-    } catch {
-      router.replace("/login");
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
+
+    const initialDarkMode =
+      savedTheme === "dark" || (!savedTheme && prefersDark);
+    setDarkMode(initialDarkMode);
+
+    if (initialDarkMode) {
+      document.documentElement.classList.add("dark");
     }
-  }, [router]);
+  }, []);
 
-  // sidebar
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const toggleSidebar = () => setSidebarOpen((s) => !s);
-  const closeSidebar = () => setSidebarOpen(false);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileButtonRef.current?.contains(event.target as Node)) {
+        return;
+      }
 
-  // tabs
-  const [activeTab, setActiveTab] = useState<
-    | "dashboard"
-    | "properties"
-    | "bookings"
-    | "payment"
-    | "profile"
-    | "support"
-    | "settings"
-  >("dashboard");
+      if (
+        profileOpen &&
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    };
 
-  // data (load from mock)
-  const [properties, setProperties] = useState<Property[]>(
-    () => MOCK_PROPERTIES,
-  );
-  const [bookings, setBookings] = useState<Booking[]>(() => MOCK_BOOKINGS);
-  const [payments, setPayments] = useState<PaymentMethod[]>(
-    () => MOCK_PAYMENTS,
-  );
-  const [user, setUser] = useState(() => MOCK_USER);
-  const [helpResources] = useState(() => MOCK_HELP);
+    document.addEventListener("mousedown", handleClickOutside);
 
-  // UI states
-  const [selected, setSelected] = useState<any | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [isEditingProperty, setIsEditingProperty] = useState(false);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileOpen]);
 
-  // search
-  const [propQuery, setPropQuery] = useState("");
-  const [bookingQuery, setBookingQuery] = useState("");
-  const [paymentQuery, setPaymentQuery] = useState("");
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
 
-  // derived
-  const totalProperties = properties.length;
-  const totalBookings = bookings.length;
-  const totalRevenue = bookings.reduce((s, b) => s + (b.amount || 0), 0);
-
-  // filtered lists
-  const filteredProperties = useMemo(() => {
-    const q = propQuery.toLowerCase().trim();
-    if (!q) return properties;
-    return properties.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.address.city.toLowerCase().includes(q) ||
-        String(p.price).includes(q),
-    );
-  }, [propQuery, properties]);
-
-  const filteredBookings = useMemo(() => {
-    const q = bookingQuery.toLowerCase().trim();
-    if (!q) return bookings;
-    return bookings.filter(
-      (b) =>
-        b.propertyName.toLowerCase().includes(q) ||
-        b.guestName.toLowerCase().includes(q) ||
-        b.id.toLowerCase().includes(q) ||
-        (b.status || "").toLowerCase().includes(q),
-    );
-  }, [bookingQuery, bookings]);
-
-  const filteredPayments = useMemo(() => {
-    const q = paymentQuery.toLowerCase().trim();
-    if (!q) return payments;
-    return payments.filter(
-      (p) => p.brand.toLowerCase().includes(q) || p.last4.includes(q),
-    );
-  }, [paymentQuery, payments]);
-
-  /* -------------------------
-     Actions
-  ------------------------- */
-
-  const openView = (payload: any) => {
-    setSelected(payload);
-    setShowModal(true);
+    if (newDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
   };
 
-  const confirmAndDeleteProperty = (id: string | number) => {
-    if (!confirm("Delete property? This action cannot be undone.")) return;
-    setProperties((prev) => prev.filter((p) => p.id !== id));
-    // also remove bookings tied to it
-    setBookings((prev) => prev.filter((b) => b.propertyId !== id));
+  const handleLogout = () => {
+    localStorage.removeItem("role");
+    localStorage.removeItem("userData");
+    localStorage.removeItem("adminToken");
+
+    setProfileOpen(false);
+
+    router.push("/");
+
+    alert("You have been logged out successfully!");
   };
 
-  const handleAddProperty = (payload: Partial<Property>) => {
-    const newProp: Property = {
-      id: `p-${Date.now()}`,
-      name: payload.name || "New Property",
-      address: payload.address || { city: "", state: "" },
-      beds: payload.beds || 1,
-      price: payload.price || 0,
-      isActive: true,
-      image: payload.image || "",
-      host: user.name,
-    } as Property;
-    setProperties((p) => [newProp, ...p]);
-  };
+  const dashboardStats = [
+    {
+      title: "Total Properties",
+      value: "8",
+      change: "+2",
+      icon: <FiHome />,
+      color: "text-[#00CFFF]",
+      bgColor: "bg-[#00CFFF]/10",
+    },
+    {
+      title: "Active Bookings",
+      value: "12",
+      change: "+3",
+      icon: <FiCalendar />,
+      color: "text-[#FF4FA1]",
+      bgColor: "bg-[#FF4FA1]/10",
+    },
+    {
+      title: "Monthly Revenue",
+      value: "₵8,500",
+      change: "+15%",
+      icon: <FiTrendingUp />,
+      color: "text-green-500",
+      bgColor: "bg-green-500/10",
+    },
+    {
+      title: "Tenants",
+      value: "24",
+      change: "+4",
+      icon: <FiUsers />,
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10",
+    },
+  ];
 
-  const handleEditProperty = (
-    id: string | number,
-    updates: Partial<Property>,
-  ) => {
-    setProperties((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates } : p)),
-    );
-  };
+  // Mock data for properties
+  const properties = [
+    {
+      id: 1,
+      name: "Luxury Apartment Accra",
+      type: "Apartment",
+      status: "Rented",
+      price: "₵2,500/month",
+      tenants: 3,
+    },
+    {
+      id: 2,
+      name: "Modern House East Legon",
+      type: "House",
+      status: "Available",
+      price: "₵3,500/month",
+      tenants: 0,
+    },
+    {
+      id: 3,
+      name: "Studio Apartments",
+      type: "Studio",
+      status: "Maintenance",
+      price: "₵1,200/month",
+      tenants: 1,
+    },
+    {
+      id: 4,
+      name: "Commercial Space Osu",
+      type: "Commercial",
+      status: "Rented",
+      price: "₵5,000/month",
+      tenants: 2,
+    },
+  ];
 
-  const handleBookingAction = (
-    id: string | number,
-    action: "confirm" | "cancel",
-  ) => {
-    setBookings((prev) =>
-      prev.map((b) => {
-        if (b.id !== id) return b;
-        return {
-          ...b,
-          status: action === "confirm" ? "confirmed" : "cancelled",
-        };
-      }),
-    );
-  };
+  // Mock data for bookings
+  const bookings = [
+    {
+      id: 1,
+      type: "Tour Booking",
+      property: "Luxury Apartment",
+      date: "2024-03-15",
+      time: "2:00 PM",
+      status: "Confirmed",
+    },
+    {
+      id: 2,
+      type: "Rental Booking",
+      property: "Modern House",
+      date: "2024-03-20",
+      time: "10:00 AM",
+      status: "Pending",
+    },
+    {
+      id: 3,
+      type: "Tour Booking",
+      property: "Studio Apartments",
+      date: "2024-03-18",
+      time: "3:30 PM",
+      status: "Cancelled",
+    },
+  ];
 
-  const addPaymentMethod = (method: Partial<PaymentMethod>) => {
-    const newMethod: PaymentMethod = {
-      id: `pm-${Date.now()}`,
-      brand: method.brand || "Card",
-      last4: method.last4 || "0000",
-      exp: method.exp || "01/30",
-    } as PaymentMethod;
-    setPayments((p) => [newMethod, ...p]);
-  };
+  const payments = [
+    {
+      id: 1,
+      tenant: "John Mensah",
+      property: "Luxury Apartment",
+      amount: "₵2,500",
+      date: "2024-03-01",
+      status: "Paid",
+    },
+    {
+      id: 2,
+      tenant: "Ama Serwaa",
+      property: "Commercial Space",
+      amount: "₵5,000",
+      date: "2024-03-05",
+      status: "Paid",
+    },
+    {
+      id: 3,
+      tenant: "Kwame Asante",
+      property: "Studio Apartments",
+      amount: "₵1,200",
+      date: "2024-03-10",
+      status: "Pending",
+    },
+  ];
 
-  const addPaymentHistory = (record: {
-    id?: string;
-    amount: number;
-    date?: string;
-    methodId?: string;
-    note?: string;
-  }) => {
-    // add a booking-like payment record to bookings for mock history (or maintain separate history array)
-    // For simplicity, push to bookings as a pseudo-record
-    const newRec: Booking = {
-      id: `pay-${Date.now()}`,
-      propertyId: "",
-      propertyName: "Manual Payment",
-      guestName: user.name,
-      duration: "—",
-      amount: record.amount,
-      status: "paid",
-      startDate: record.date || new Date().toISOString().split("T")[0],
-    } as unknown as Booking;
-    setBookings((b) => [newRec, ...b]);
-  };
+  const menuItems = [
+    { id: "dashboard", label: "Dashboard", icon: <FiHome /> },
+    { id: "properties", label: "Properties", icon: <FiList /> },
+    { id: "add-property", label: "Add Property", icon: <FiPlus /> },
+    { id: "bookings", label: "Bookings", icon: <FiCalendar /> },
+    { id: "payments", label: "Payments", icon: <FiDollarSign /> },
+    { id: "messages", label: "Messages", icon: <FiMessageSquare /> },
+    { id: "support", label: "Support", icon: <FiHelpCircle /> },
+    { id: "settings", label: "Settings", icon: <FiSettings /> },
+  ];
 
-  const updateProfile = (updates: Partial<typeof user>) => {
-    setUser((u) => ({ ...u, ...updates }));
-  };
+  const renderSection = () => {
+    switch (activeSection) {
+      case "dashboard":
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {dashboardStats.map((stat, index) => (
+                <div
+                  key={index}
+                  className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-lg ${stat.bgColor} ${stat.color}`}
+                    >
+                      {stat.icon}
+                    </div>
+                    <span className="text-sm font-medium text-green-500 bg-green-500/10 px-2 py-1 rounded">
+                      {stat.change}
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {stat.title}
+                  </div>
+                </div>
+              ))}
+            </div>
 
-  /* -------------------------
-     Render
-  ------------------------- */
-  return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* mobile top bar */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
-        <div className="flex items-center gap-2">
-          <button onClick={toggleSidebar} aria-label="toggle menu">
-            {sidebarOpen ? <X /> : <Menu />}
-          </button>
-          <h1 className="text-lg font-bold text-[#00CFFF]">Homeowner Panel</h1>
-        </div>
-      </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Bookings */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Recent Bookings
+                  </h3>
+                  <button className="text-sm text-[#00CFFF] hover:text-[#FF4FA1] transition-colors">
+                    View All
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {bookings.slice(0, 3).map((booking) => (
+                    <div
+                      key={booking.id}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              booking.status === "Confirmed"
+                                ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                                : booking.status === "Pending"
+                                  ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+                                  : "bg-red-500/10 text-red-600 dark:text-red-400"
+                            }`}
+                          >
+                            {booking.status}
+                          </div>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {booking.type}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {booking.property} • {booking.date} at {booking.time}
+                        </div>
+                      </div>
+                      <FiChevronRight className="text-gray-400" />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-      <div className="flex">
-        <aside
-          className={`fixed md:relative z-30 inset-y-0 left-0 transform ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          } transition-transform duration-200 w-64 bg-gray-800 border-r border-gray-700 p-6`}
-        >
-          <div className="hidden md:block mb-6">
-            <h2 className="text-2xl font-bold text-[#00CFFF]">Homeowner</h2>
-          </div>
+              {/* Recent Payments */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Recent Payments
+                  </h3>
+                  <button className="text-sm text-[#00CFFF] hover:text-[#FF4FA1] transition-colors">
+                    View All
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {payments.slice(0, 3).map((payment) => (
+                    <div
+                      key={payment.id}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              payment.status === "Paid"
+                                ? "bg-green-500"
+                                : "bg-yellow-500"
+                            }`}
+                          ></div>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {payment.tenant}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {payment.property} • {payment.date}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {payment.amount}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {payment.status}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-          <nav className="space-y-2">
-            <SidebarBtn
-              label="Dashboard"
-              icon={<Home size={16} />}
-              active={activeTab === "dashboard"}
-              onClick={() => {
-                setActiveTab("dashboard");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Properties"
-              icon={<List size={16} />}
-              active={activeTab === "properties"}
-              onClick={() => {
-                setActiveTab("properties");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Bookings"
-              icon={<BookOpen size={16} />}
-              active={activeTab === "bookings"}
-              onClick={() => {
-                setActiveTab("bookings");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Payment"
-              icon={<CreditCard size={16} />}
-              active={activeTab === "payment"}
-              onClick={() => {
-                setActiveTab("payment");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Profile"
-              icon={<User size={16} />}
-              active={activeTab === "profile"}
-              onClick={() => {
-                setActiveTab("profile");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Support"
-              icon={<MessageCircle size={16} />}
-              active={activeTab === "support"}
-              onClick={() => {
-                setActiveTab("support");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Settings"
-              icon={<Settings size={16} />}
-              active={activeTab === "settings"}
-              onClick={() => {
-                setActiveTab("settings");
-                closeSidebar();
-              }}
-            />
-          </nav>
-
-          <div className="mt-8 text-sm text-gray-300">
-            <div>Signed in as</div>
-            <div className="mt-1 font-medium">{user.name}</div>
-            <button
-              className="mt-4 bg-[#FF4FA1] px-3 py-2 rounded-lg font-semibold"
-              onClick={() => {
-                localStorage.removeItem("role");
-                router.push("/login");
-              }}
-            >
-              Logout
-            </button>
-          </div>
-        </aside>
-
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-20 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-
-        <main className={`flex-1 transition-all duration-200 p-4 md:p-8`}>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">
-              {activeTab === "dashboard" && "Dashboard Overview"}
-              {activeTab === "properties" && "Your Properties"}
-              {activeTab === "bookings" && "Bookings"}
-              {activeTab === "payment" && "Payments"}
-              {activeTab === "profile" && "Personal Information"}
-              {activeTab === "support" && "Support"}
-              {activeTab === "settings" && "Settings"}
-            </h2>
-            <div className="hidden md:flex items-center gap-4 text-gray-300">
-              <div>{user.email}</div>
+            {/* Quick Actions */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                Quick Actions
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  {
+                    label: "Add Property",
+                    icon: <FiPlus />,
+                    color: "text-[#00CFFF]",
+                  },
+                  {
+                    label: "View Bookings",
+                    icon: <FiCalendar />,
+                    color: "text-[#FF4FA1]",
+                  },
+                  {
+                    label: "Send Message",
+                    icon: <FiMessageSquare />,
+                    color: "text-green-500",
+                  },
+                  {
+                    label: "Generate Report",
+                    icon: <FiDownload />,
+                    color: "text-purple-500",
+                  },
+                ].map((action, index) => (
+                  <button
+                    key={index}
+                    className="flex flex-col items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <div className={`text-2xl mb-2 ${action.color}`}>
+                      {action.icon}
+                    </div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {action.label}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
+        );
 
-          {/* DASHBOARD */}
-          {activeTab === "dashboard" && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <StatCard
-                  label="Properties"
-                  value={totalProperties}
-                  color="pink"
-                />
-                <StatCard label="Bookings" value={totalBookings} color="teal" />
-                <StatCard
-                  label="Revenue (Ghc)"
-                  value={totalRevenue}
-                  color="pink"
-                />
-                <StatCard
-                  label="Payment Methods"
-                  value={payments.length}
-                  color="teal"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                  <h3 className="font-semibold mb-4">Your Properties</h3>
-                  <div className="space-y-3">
-                    {properties.slice(0, 6).map((p) => (
-                      <div key={p.id} className="flex items-center gap-3">
-                        {p.image && (
-                          <img
-                            src={p.image}
-                            alt={p.name}
-                            className="w-16 h-12 object-cover rounded"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <div className="font-semibold">{p.name}</div>
-                          <div className="text-xs text-gray-400">
-                            {p.address.city}, {p.address.state}
-                          </div>
-                        </div>
-                        <div className="text-sm text-[#FF4FA1]">
-                          Ghc {p.price}
-                        </div>
-                      </div>
-                    ))}
+      case "properties":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Your Properties
+                </h2>
+                <div className="flex items-center gap-3">
+                  <div className="relative flex-1 md:w-64">
+                    <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search properties..."
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
+                    />
                   </div>
-                </div>
-
-                <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                  <h3 className="font-semibold mb-4">Recent Bookings</h3>
-                  <div className="space-y-3">
-                    {bookings.slice(0, 6).map((b) => (
-                      <div key={b.id} className="p-3 bg-gray-900 rounded">
-                        <div className="flex justify-between">
-                          <div>
-                            <div className="font-semibold">
-                              {b.propertyName}
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              {b.guestName} • {b.startDate}
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-300">
-                            {b.status}
-                          </div>
-                        </div>
-                        <div className="mt-2 text-sm text-gray-200">
-                          Ghc {b.amount}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* PROPERTIES */}
-          {activeTab === "properties" && (
-            <>
-              <div className="mb-4 flex items-center justify-between">
-                <TableToolbar
-                  placeholder="Search properties by name, city or price..."
-                  value={propQuery}
-                  onChange={(v) => setPropQuery(v)}
-                  onClear={() => setPropQuery("")}
-                />
-                <div className="ml-4">
-                  <button
-                    onClick={() => {
-                      setIsEditingProperty(false);
-                      setSelected(null);
-                      setShowModal(true);
-                    }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded bg-[#00CFFF] text-black font-semibold"
-                  >
-                    <Plus size={16} /> Add Property
+                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <FiFilter />
+                    Filter
                   </button>
                 </div>
               </div>
 
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-auto">
-                <table className="min-w-full text-sm text-left text-gray-300">
-                  <thead className="bg-gray-700 text-gray-200 sticky top-0">
-                    <tr>
-                      <th className="px-4 py-3">Name</th>
-                      <th className="px-4 py-3">Location</th>
-                      <th className="px-4 py-3">Beds</th>
-                      <th className="px-4 py-3">Price</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-center">Actions</th>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Property
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Type
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Status
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Price
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Tenants
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredProperties.map((p) => (
+                    {properties.map((property) => (
                       <tr
-                        key={p.id}
-                        className="border-t border-gray-700 hover:bg-gray-700/30"
+                        key={property.id}
+                        className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50"
                       >
-                        <td className="px-4 py-3">{p.name}</td>
-                        <td className="px-4 py-3">
-                          {p.address.city}, {p.address.state}
+                        <td className="py-4 px-4">
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {property.name}
+                          </div>
                         </td>
-                        <td className="px-4 py-3">{p.beds}</td>
-                        <td className="px-4 py-3">Ghc {p.price}</td>
-                        <td className="px-4 py-3">
-                          {p.isActive ? "Active" : "Inactive"}
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                          {property.type}
                         </td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="inline-flex items-center gap-2">
-                            <button
-                              onClick={() => {
-                                setSelected(p);
-                                setIsEditingProperty(true);
-                                setShowModal(true);
-                              }}
-                              className="text-[#00CFFF]"
-                              title="Edit"
-                            >
-                              <Edit3 />
+                        <td className="py-4 px-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              property.status === "Rented"
+                                ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                                : property.status === "Available"
+                                  ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                  : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+                            }`}
+                          >
+                            {property.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 font-medium text-gray-900 dark:text-white">
+                          {property.price}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <FiUsers className="text-gray-400" />
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {property.tenants}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#00CFFF] hover:bg-[#00CFFF]/10 rounded-lg transition-colors">
+                              <FiEye />
                             </button>
-                            <button
-                              onClick={() => openView(p)}
-                              className="text-gray-200"
-                              title="View"
-                            >
-                              <Eye />
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors">
+                              <FiEdit />
                             </button>
-                            <button
-                              onClick={() => confirmAndDeleteProperty(p.id)}
-                              className="text-red-500"
-                              title="Delete"
-                            >
-                              <Trash2 />
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#FF4FA1] hover:bg-[#FF4FA1]/10 rounded-lg transition-colors">
+                              <FiTrash2 />
                             </button>
                           </div>
                         </td>
                       </tr>
                     ))}
-                    {filteredProperties.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="px-4 py-6 text-center text-gray-400"
-                        >
-                          No properties
-                        </td>
-                      </tr>
-                    )}
                   </tbody>
                 </table>
               </div>
-            </>
-          )}
 
-          {/* BOOKINGS */}
-          {activeTab === "bookings" && (
-            <>
-              <TableToolbar
-                placeholder="Search bookings by property, guest or id..."
-                value={bookingQuery}
-                onChange={(v) => setBookingQuery(v)}
-                onClear={() => setBookingQuery("")}
-              />
-
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-auto">
-                <table className="min-w-full text-sm text-left text-gray-300">
-                  <thead className="bg-gray-700 text-gray-200 sticky top-0">
-                    <tr>
-                      <th className="px-4 py-3">Property</th>
-                      <th className="px-4 py-3">Guest</th>
-                      <th className="px-4 py-3">Duration</th>
-                      <th className="px-4 py-3">Amount</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredBookings.map((b) => (
-                      <tr
-                        key={b.id}
-                        className="border-t border-gray-700 hover:bg-gray-700/30"
-                      >
-                        <td className="px-4 py-3">{b.propertyName}</td>
-                        <td className="px-4 py-3">{b.guestName}</td>
-                        <td className="px-4 py-3">{b.duration}</td>
-                        <td className="px-4 py-3">Ghc {b.amount}</td>
-                        <td className="px-4 py-3">{b.status}</td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="inline-flex items-center gap-2">
-                            <button
-                              onClick={() => openView(b)}
-                              className="text-[#00CFFF]"
-                              title="View"
-                            >
-                              <Eye />
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleBookingAction(b.id, "cancel")
-                              }
-                              className="text-red-500"
-                              title="Cancel"
-                            >
-                              <XCircle />
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleBookingAction(b.id, "confirm")
-                              }
-                              className="text-green-400"
-                              title="Confirm"
-                            >
-                              <Check />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredBookings.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="px-4 py-6 text-center text-gray-400"
-                        >
-                          No bookings
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-
-          {/* PAYMENT */}
-          {activeTab === "payment" && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="col-span-1 bg-gray-800 rounded-xl border border-gray-700 p-4">
-                <h3 className="font-semibold mb-3">Payment Methods</h3>
-                <TableToolbar
-                  placeholder="Filter methods..."
-                  value={paymentQuery}
-                  onChange={(v) => setPaymentQuery(v)}
-                  onClear={() => setPaymentQuery("")}
-                />
-                <div className="space-y-3 mt-3">
-                  {filteredPayments.map((p) => (
-                    <div
-                      key={p.id}
-                      className="p-3 bg-gray-900 rounded flex items-center justify-between"
-                    >
-                      <div>
-                        <div className="font-semibold">
-                          {p.brand} • ****{p.last4}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          Exp: {p.exp}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {}}
-                          className="text-[#00CFFF] text-sm"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() =>
-                            setPayments((prev) =>
-                              prev.filter((m) => m.id !== p.id),
-                            )
-                          }
-                          className="text-red-500 text-sm"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {filteredPayments.length === 0 && (
-                    <div className="text-gray-400">No payment methods</div>
-                  )}
+              <div className="flex items-center justify-between mt-6">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Showing {properties.length} properties
                 </div>
-                <div className="mt-4">
-                  <AddPaymentForm onAdd={(m) => addPaymentMethod(m)} />
-                </div>
-              </div>
-
-              <div className="col-span-2 bg-gray-800 rounded-xl border border-gray-700 p-4">
-                <h3 className="font-semibold mb-3">Payment History</h3>
-                <div className="max-h-[56vh] overflow-auto space-y-3">
-                  {bookings.map((b) => (
-                    <div
-                      key={b.id}
-                      className="p-3 rounded bg-gray-900 flex justify-between"
-                    >
-                      <div>
-                        <div className="font-semibold">{b.propertyName}</div>
-                        <div className="text-xs text-gray-400">
-                          {b.guestName} • {b.startDate}
-                        </div>
-                      </div>
-                      <div className="text-sm">Ghc {b.amount}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4">
-                  <AddPaymentHistory onAdd={(r) => addPaymentHistory(r)} />
+                <div className="flex items-center gap-2">
+                  <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Previous
+                  </button>
+                  <button className="px-4 py-2 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90">
+                    1
+                  </button>
+                  <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Next
+                  </button>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        );
 
-          {/* PROFILE */}
-          {activeTab === "profile" && (
-            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-2xl">
-              <h3 className="font-semibold mb-4">Personal Information</h3>
-              <ProfileForm user={user} onSave={(u) => updateProfile(u)} />
-            </div>
-          )}
-
-          {/* SUPPORT */}
-          {activeTab === "support" && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="col-span-2 bg-gray-800 rounded-xl border border-gray-700 p-4">
-                <h3 className="font-semibold mb-3">Send a Message</h3>
-                <SupportForm
-                  onSend={(msg) => {
-                    // mock: add to bookings as message or prompt an alert
-                    alert("Message sent (mock): " + msg.substring(0, 80));
-                  }}
-                />
-
-                <div className="mt-6">
-                  <h4 className="font-semibold mb-2">
-                    Recent Support Tickets (mock)
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-gray-900 rounded">
-                      No recent tickets (mock)
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-span-1 bg-gray-800 rounded-xl border border-gray-700 p-4">
-                <h3 className="font-semibold mb-3">Help Resources</h3>
-                <div className="space-y-2 text-sm text-gray-300">
-                  {helpResources.map((r: any) => (
-                    <a
-                      key={r.id}
-                      href={r.link}
-                      className="block hover:underline"
-                    >
-                      {r.title}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* SETTINGS */}
-          {activeTab === "settings" && (
-            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-2xl">
-              <h3 className="font-semibold mb-4">Change Password</h3>
-              <ChangePasswordForm
-                onChange={(payload) => {
-                  alert("Password changed (mock)");
-                }}
-              />
-            </div>
-          )}
-        </main>
-      </div>
-
-      {/* VIEW / EDIT MODAL */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-gray-800 rounded-2xl border border-gray-700 max-w-3xl w-full overflow-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between">
-                <h3 className="text-2xl font-bold text-[#00CFFF]">
-                  {isEditingProperty
-                    ? "Edit Property"
-                    : selected
-                      ? "Details"
-                      : "Add Property"}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowModal(false);
-                    setSelected(null);
-                  }}
-                  className="text-gray-300"
-                >
-                  Close
-                </button>
-              </div>
-
-              <div className="mt-4">
-                {/* If adding / editing property show form */}
-                {(isEditingProperty || !selected) && (
-                  <PropertyForm
-                    initial={isEditingProperty ? selected : undefined}
-                    onSave={(vals) => {
-                      if (isEditingProperty && selected) {
-                        handleEditProperty(selected.id, vals);
-                      } else {
-                        handleAddProperty(vals as any);
-                      }
-                      setShowModal(false);
-                      setSelected(null);
-                    }}
-                    onCancel={() => {
-                      setShowModal(false);
-                      setSelected(null);
-                    }}
+      case "add-property":
+        return (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+              Add New Property
+            </h2>
+            <form className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Property Name
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
+                    placeholder="Enter property name"
                   />
-                )}
-
-                {/* If viewing an entity */}
-                {selected && !isEditingProperty && (
-                  <div>
-                    {selected.address && (
-                      <div>
-                        <div className="text-sm text-gray-400">Property</div>
-                        <div className="mt-2 bg-gray-900 p-4 rounded">
-                          <div className="flex gap-4">
-                            {selected.image && (
-                              <img
-                                src={selected.image}
-                                className="w-32 h-24 object-cover rounded"
-                                alt={selected.name}
-                              />
-                            )}
-                            <div className="flex-1">
-                              <div className="text-lg font-semibold">
-                                {selected.name}
-                              </div>
-                              <div className="text-sm text-gray-400">
-                                {selected.address.city},{" "}
-                                {selected.address.state}
-                              </div>
-                              <div className="mt-2">Beds: {selected.beds}</div>
-                              <div>Price: Ghc {selected.price}</div>
-                              <div>
-                                Status:{" "}
-                                {selected.isActive ? "Active" : "Inactive"}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {selected && selected.message && (
-                      <div className="mt-4">
-                        <div className="text-sm text-gray-400">Message</div>
-                        <div className="mt-2 bg-gray-900 p-4 rounded">
-                          <div>
-                            <strong>From:</strong> {selected.from}
-                          </div>
-                          <div>
-                            <strong>To:</strong> {selected.to}
-                          </div>
-                          <div className="mt-2">{selected.message}</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* fallback raw */}
-                    {!selected.address && !selected.message && (
-                      <pre className="bg-gray-900 p-4 rounded text-sm text-gray-200">
-                        {JSON.stringify(selected, null, 2)}
-                      </pre>
-                    )}
-                  </div>
-                )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Property Type
+                  </label>
+                  <select className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent">
+                    <option>Apartment</option>
+                    <option>House</option>
+                    <option>Studio</option>
+                    <option>Commercial</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Price per Month
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
+                    placeholder="₵0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
+                    placeholder="Enter location"
+                  />
+                </div>
               </div>
 
-              <div className="mt-4 flex justify-end gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
+                  placeholder="Describe your property..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Number of Bedrooms
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Number of Bathrooms
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <button
-                  onClick={() => {
-                    setShowModal(false);
-                    setSelected(null);
-                  }}
-                  className="px-4 py-2 rounded bg-gray-700"
+                  type="button"
+                  className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
-                  Close
+                  Cancel
                 </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90"
+                >
+                  Add Property
+                </button>
+              </div>
+            </form>
+          </div>
+        );
+
+      case "bookings":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Bookings Management
+                </h2>
+                <div className="flex items-center gap-3">
+                  <button className="px-4 py-2 bg-[#FF4FA1] text-white rounded-lg hover:bg-[#FF4FA1]/90 flex items-center gap-2">
+                    <FiPlus />
+                    New Booking
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {[
+                  { label: "Tour Bookings", count: "8", color: "bg-[#00CFFF]" },
+                  {
+                    label: "Rental Bookings",
+                    count: "12",
+                    color: "bg-[#FF4FA1]",
+                  },
+                  {
+                    label: "Pending Approval",
+                    count: "3",
+                    color: "bg-yellow-500",
+                  },
+                ].map((stat, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4"
+                  >
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {stat.count}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                {bookings.map((booking) => (
+                  <div
+                    key={booking.id}
+                    className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <div className="mb-3 md:mb-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="text-lg font-medium text-gray-900 dark:text-white">
+                          {booking.type}
+                        </div>
+                        <div
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            booking.status === "Confirmed"
+                              ? "bg-green-500/10 text-green-600"
+                              : booking.status === "Pending"
+                                ? "bg-yellow-500/10 text-yellow-600"
+                                : "bg-red-500/10 text-red-600"
+                          }`}
+                        >
+                          {booking.status}
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {booking.property} • {booking.date} at {booking.time}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {booking.status === "Pending" && (
+                        <>
+                          <button className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 flex items-center gap-1">
+                            <FiCheck />
+                            Approve
+                          </button>
+                          <button className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 flex items-center gap-1">
+                            <FiX />
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#00CFFF] hover:bg-[#00CFFF]/10 rounded-lg">
+                        <FiEye />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case "payments":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Payment Management
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {/* Add Payment Method */}
+                <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Add Payment Method
+                  </h3>
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      placeholder="Card Number"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <input
+                        type="text"
+                        placeholder="MM/YY"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="CVV"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <button className="w-full px-4 py-3 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90">
+                      Add Payment Method
+                    </button>
+                  </div>
+                </div>
+
+                {/* Payment History */}
+                <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Payment History
+                  </h3>
+                  <div className="space-y-3">
+                    {payments.map((payment) => (
+                      <div
+                        key={payment.id}
+                        className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg"
+                      >
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {payment.tenant}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {payment.property}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-gray-900 dark:text-white">
+                            {payment.amount}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {payment.date}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="w-full mt-4 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    View All Payments
+                  </button>
+                </div>
+              </div>
+
+              {/* Revenue Summary */}
+              <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Revenue Summary
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { label: "Total Revenue", value: "₵25,200" },
+                    { label: "This Month", value: "₵8,500" },
+                    { label: "Pending", value: "₵1,200" },
+                    { label: "Collected", value: "₵24,000" },
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+                    >
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {item.value}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {item.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "messages":
+        return (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+              Messages
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Contacts */}
+              <div className="lg:col-span-1 border border-gray-200 dark:border-gray-700 rounded-xl">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Contacts
+                  </h3>
+                </div>
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {[
+                    "John Mensah (Tenant)",
+                    "Ama Serwaa (Tenant)",
+                    "Admin Support",
+                    "Maintenance Team",
+                  ].map((contact, index) => (
+                    <button
+                      key={index}
+                      className="w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    >
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {contact}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Last message 2 hours ago
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chat */}
+              <div className="lg:col-span-2 flex flex-col border border-gray-200 dark:border-gray-700 rounded-xl">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="font-semibold text-gray-900 dark:text-white">
+                    John Mensah (Tenant)
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Apartment #302
+                  </div>
+                </div>
+
+                <div className="flex-grow p-4 space-y-4 overflow-y-auto max-h-[400px]">
+                  <div className="flex justify-start">
+                    <div className="max-w-[70%] bg-gray-100 dark:bg-gray-700 rounded-xl p-3">
+                      <div className="text-gray-900 dark:text-white">
+                        Hi, there's an issue with the kitchen tap
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">10:30 AM</div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="max-w-[70%] bg-[#00CFFF] text-white rounded-xl p-3">
+                      <div>
+                        Thanks for letting me know. I'll send a plumber tomorrow
+                        morning.
+                      </div>
+                      <div className="text-xs text-white/80 mt-1">10:35 AM</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      placeholder="Type your message..."
+                      className="flex-grow px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                    <button className="px-6 py-3 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90">
+                      Send
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "support":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Support Center
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {[
+                  {
+                    title: "Create Support Ticket",
+                    description: "Report issues or request assistance",
+                    icon: <FiPlus />,
+                    action: "Create Ticket",
+                  },
+                  {
+                    title: "View Open Tickets",
+                    description: "Check status of existing tickets",
+                    icon: <FiList />,
+                    action: "View Tickets",
+                  },
+                  {
+                    title: "FAQs",
+                    description: "Find answers to common questions",
+                    icon: <FiHelpCircle />,
+                    action: "Browse FAQs",
+                  },
+                  {
+                    title: "Contact Support",
+                    description: "Get in touch with our team",
+                    icon: <FiMessageSquare />,
+                    action: "Contact Now",
+                  },
+                ].map((item, index) => (
+                  <div
+                    key={index}
+                    className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <div className="text-3xl text-[#00CFFF] mb-4">
+                      {item.icon}
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      {item.title}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      {item.description}
+                    </p>
+                    <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      {item.action}
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Recent Tickets */}
+              <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Recent Support Tickets
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    {
+                      id: "TKT-001",
+                      subject: "Plumbing Issue",
+                      status: "In Progress",
+                      date: "2024-03-10",
+                    },
+                    {
+                      id: "TKT-002",
+                      subject: "Electrical Problem",
+                      status: "Resolved",
+                      date: "2024-03-08",
+                    },
+                    {
+                      id: "TKT-003",
+                      subject: "Rent Payment Query",
+                      status: "Open",
+                      date: "2024-03-12",
+                    },
+                  ].map((ticket, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg"
+                    >
+                      <div>
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {ticket.subject}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          {ticket.id} • {ticket.date}
+                        </div>
+                      </div>
+                      <div
+                        className={`px-3 py-1 rounded text-sm ${
+                          ticket.status === "Resolved"
+                            ? "bg-green-500/10 text-green-600"
+                            : ticket.status === "In Progress"
+                              ? "bg-yellow-500/10 text-yellow-600"
+                              : "bg-blue-500/10 text-blue-600"
+                        }`}
+                      >
+                        {ticket.status}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "settings":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Account Settings
+              </h2>
+
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Profile Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        defaultValue="Iddi Sule"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        defaultValue="iddi@gmail.com"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        defaultValue="+233 20 123 4567"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Company Name
+                      </label>
+                      <input
+                        type="text"
+                        defaultValue="RentSmart"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notification Settings */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Notification Preferences
+                  </h3>
+                  <div className="space-y-3">
+                    {[
+                      {
+                        label: "Email notifications",
+                        description:
+                          "Receive email updates about bookings and payments",
+                      },
+                      {
+                        label: "SMS notifications",
+                        description: "Get text messages for urgent matters",
+                      },
+                      {
+                        label: "Push notifications",
+                        description:
+                          "Receive push notifications on your device",
+                      },
+                      {
+                        label: "Booking alerts",
+                        description: "Get notified about new booking requests",
+                      },
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          className="mt-1"
+                        />
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {item.label}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {item.description}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Security Settings */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Security
+                  </h3>
+                  <div className="space-y-4">
+                    <button className="w-full md:w-auto px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      Change Password
+                    </button>
+                    <button className="w-full md:w-auto px-6 py-3 border border-red-300 dark:border-red-600 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                      Deactivate Account
+                    </button>
+                  </div>
+                </div>
+
+                {/* Save Changes */}
+                <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <button className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Cancel
+                  </button>
+                  <button className="px-6 py-3 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90">
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                Homeowner Dashboard
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                aria-label={
+                  darkMode ? "Switch to light mode" : "Switch to dark mode"
+                }
+              >
+                {darkMode ? (
+                  <FiSun className="w-5 h-5" />
+                ) : (
+                  <FiMoon className="w-5 h-5" />
+                )}
+              </button>
+
+              <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                <FiBell className="w-5 h-5" />
+              </button>
+
+              {/* Profile Dropdown */}
+              <div className="relative">
+                <button
+                  ref={profileButtonRef}
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+                >
+                  <div className="w-8 h-8 rounded-full bg-[#00CFFF] flex items-center justify-center text-white font-semibold">
+                    IS
+                  </div>
+                  <div className="hidden md:block text-left">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      Iddi Sule
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      Homeowner
+                    </div>
+                  </div>
+                  <svg
+                    className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {/* Dropdown Menu */}
+                {profileOpen && (
+                  <div
+                    ref={profileDropdownRef}
+                    className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+                  >
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          router.push("/homeowner/profile");
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        Profile Settings
+                      </button>
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          router.push("/homeowner/settings");
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        Account Settings
+                      </button>
+                      <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        <FiLogOut className="w-4 h-4" />
+                        Log Out
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
+      </header>
 
-/* -------------------------
-   Small UI helpers & subcomponents
-   ------------------------- */
-
-function SidebarBtn({
-  label,
-  icon,
-  active,
-  onClick,
-}: {
-  label: string;
-  icon?: React.ReactNode;
-  active?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 ${
-        active ? "bg-[#00CFFF] text-black" : "hover:bg-gray-700"
-      }`}
-    >
-      <span className="opacity-90">{icon}</span>
-      <span>{label}</span>
-    </button>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  color = "pink",
-}: {
-  label: string;
-  value: number | string;
-  color?: "pink" | "teal";
-}) {
-  const accent = color === "teal" ? "text-[#00CFFF]" : "text-[#FF4FA1]";
-  return (
-    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-      <div className="text-sm text-gray-400">{label}</div>
-      <div className={`mt-2 text-2xl font-bold ${accent}`}>{value}</div>
-    </div>
-  );
-}
-
-function TableToolbar({
-  placeholder,
-  value,
-  onChange,
-  onClear,
-}: {
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
-  onClear: () => void;
-}) {
-  return (
-    <div className="mb-4 flex items-center gap-3 w-full">
-      <div className="flex items-center bg-gray-800 rounded-lg border border-gray-700 px-3 py-2 w-full max-w-lg">
-        <Search className="text-gray-400 mr-2" />
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="bg-transparent outline-none text-sm text-gray-200 w-full"
-        />
-        {value && (
-          <button onClick={onClear} className="text-sm text-gray-400 ml-2">
-            Clear
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function AddPaymentForm({
-  onAdd,
-}: {
-  onAdd: (m: Partial<PaymentMethod>) => void;
-}) {
-  const [brand, setBrand] = useState("");
-  const [last4, setLast4] = useState("");
-  const [exp, setExp] = useState("");
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!brand || !last4) return alert("Provide brand and last4");
-        onAdd({ brand, last4, exp });
-        setBrand("");
-        setLast4("");
-        setExp("");
-      }}
-    >
-      <div className="space-y-2">
-        <input
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
-          placeholder="Brand (e.g., Visa)"
-          className="w-full rounded bg-gray-900 p-2 text-sm outline-none"
-        />
-        <div className="flex gap-2">
-          <input
-            value={last4}
-            onChange={(e) => setLast4(e.target.value)}
-            placeholder="Last 4"
-            className="w-1/2 rounded bg-gray-900 p-2 text-sm outline-none"
-          />
-          <input
-            value={exp}
-            onChange={(e) => setExp(e.target.value)}
-            placeholder="MM/YY"
-            className="w-1/2 rounded bg-gray-900 p-2 text-sm outline-none"
-          />
-        </div>
-        <div className="flex justify-end">
-          <button className="px-3 py-2 rounded bg-[#00CFFF] text-black text-sm">
-            Add Method
-          </button>
-        </div>
-      </div>
-    </form>
-  );
-}
-
-function AddPaymentHistory({
-  onAdd,
-}: {
-  onAdd: (r: { amount: number; date?: string; methodId?: string }) => void;
-}) {
-  const [amount, setAmount] = useState("");
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        const amt = Number(amount);
-        if (!amt) return alert("Enter amount");
-        onAdd({ amount: amt });
-        setAmount("");
-      }}
-      className="mt-4"
-    >
-      <div className="flex gap-2">
-        <input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Amount"
-          className="flex-1 rounded bg-gray-900 p-2 text-sm outline-none"
-        />
-        <button className="px-3 py-2 rounded bg-[#FF4FA1]">Add</button>
-      </div>
-    </form>
-  );
-}
-
-function PropertyForm({
-  initial,
-  onSave,
-  onCancel,
-}: {
-  initial?: any;
-  onSave: (vals: any) => void;
-  onCancel: () => void;
-}) {
-  const [name, setName] = useState(initial?.name || "");
-  const [city, setCity] = useState(initial?.address?.city || "");
-  const [state, setState] = useState(initial?.address?.state || "");
-  const [beds, setBeds] = useState(initial?.beds || 1);
-  const [price, setPrice] = useState(initial?.price || 0);
-  const [image, setImage] = useState(initial?.image || "");
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSave({ name, address: { city, state }, beds, price, image });
-      }}
-    >
-      <div className="grid grid-cols-1 gap-3">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Property name"
-          className="rounded bg-gray-900 p-2 text-sm outline-none"
-        />
-        <div className="flex gap-2">
-          <input
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="City"
-            className="flex-1 rounded bg-gray-900 p-2 text-sm outline-none"
-          />
-          <input
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            placeholder="State"
-            className="w-1/3 rounded bg-gray-900 p-2 text-sm outline-none"
-          />
-        </div>
-        <div className="flex gap-2">
-          <input
-            type="number"
-            value={beds}
-            onChange={(e) => setBeds(Number(e.target.value))}
-            placeholder="Beds"
-            className="w-1/2 rounded bg-gray-900 p-2 text-sm outline-none"
-          />
-          <input
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
-            placeholder="Price"
-            className="flex-1 rounded bg-gray-900 p-2 text-sm outline-none"
-          />
-        </div>
-        <input
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          placeholder="Image URL (optional)"
-          className="rounded bg-gray-900 p-2 text-sm outline-none"
-        />
-        <div className="flex justify-end gap-2 mt-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="md:hidden mb-4">
           <button
-            type="button"
-            onClick={onCancel}
-            className="px-3 py-2 rounded bg-gray-700"
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="w-full flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
           >
-            Cancel
+            <div className="flex items-center gap-2">
+              {menuItems.find((item) => item.id === activeSection)?.icon}
+              <span className="font-medium text-gray-900 dark:text-white">
+                {menuItems.find((item) => item.id === activeSection)?.label}
+              </span>
+            </div>
+            <FiChevronDown
+              className={`transition-transform ${showMobileMenu ? "rotate-180" : ""}`}
+            />
           </button>
-          <button className="px-3 py-2 rounded bg-[#00CFFF] text-black">
-            Save
-          </button>
-        </div>
-      </div>
-    </form>
-  );
-}
 
-function ProfileForm({
-  user,
-  onSave,
-}: {
-  user: any;
-  onSave: (u: any) => void;
-}) {
-  const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
-  const [phone, setPhone] = useState(user.phone || "");
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSave({ name, email, phone });
-      }}
-    >
-      <div className="grid grid-cols-1 gap-3">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Full name"
-          className="rounded bg-gray-900 p-2 text-sm outline-none"
-        />
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          className="rounded bg-gray-900 p-2 text-sm outline-none"
-        />
-        <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="Phone"
-          className="rounded bg-gray-900 p-2 text-sm outline-none"
-        />
-        <div className="flex justify-end gap-2 mt-2">
-          <button
-            type="submit"
-            className="px-3 py-2 rounded bg-[#00CFFF] text-black"
-          >
-            Save
-          </button>
+          {showMobileMenu && (
+            <div className="mt-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveSection(item.id);
+                    setShowMobileMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-3 p-4 text-left transition-colors ${
+                    activeSection === item.id
+                      ? "bg-gray-50 dark:bg-gray-700 text-[#00CFFF]"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
-    </form>
-  );
-}
 
-function SupportForm({ onSend }: { onSend: (text: string) => void }) {
-  const [text, setText] = useState("");
-  return (
-    <div>
-      <textarea
-        rows={6}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Describe your issue..."
-        className="w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-white"
-      />
-      <div className="flex justify-end gap-3 mt-3">
-        <button
-          onClick={() => {
-            setText("");
-          }}
-          className="px-4 py-2 rounded bg-gray-700"
-        >
-          Clear
-        </button>
-        <button
-          onClick={() => {
-            if (!text.trim()) return alert("Message cannot be empty");
-            onSend(text.trim());
-            setText("");
-          }}
-          className="px-4 py-2 rounded bg-[#00CFFF] text-black font-semibold"
-        >
-          Send
-        </button>
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Desktop Menu */}
+          <div className="hidden md:block w-full md:w-64 flex-shrink-0">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden sticky top-6">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSection(item.id)}
+                  className={`w-full flex items-center gap-3 p-4 text-left transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
+                    activeSection === item.id
+                      ? "bg-gray-50 dark:bg-gray-700 text-[#00CFFF]"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1">{renderSection()}</div>
+        </div>
       </div>
     </div>
   );
-}
+};
 
-function ChangePasswordForm({
-  onChange,
-}: {
-  onChange: (payload: any) => void;
-}) {
-  const [current, setCurrent] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (password !== confirm) return alert("Passwords do not match");
-        onChange({ current, password });
-        setCurrent("");
-        setPassword("");
-        setConfirm("");
-      }}
-    >
-      <div className="grid grid-cols-1 gap-3 max-w-md">
-        <input
-          type="password"
-          value={current}
-          onChange={(e) => setCurrent(e.target.value)}
-          placeholder="Current password"
-          className="rounded bg-gray-900 p-2 text-sm outline-none"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="New password"
-          className="rounded bg-gray-900 p-2 text-sm outline-none"
-        />
-        <input
-          type="password"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          placeholder="Confirm new password"
-          className="rounded bg-gray-900 p-2 text-sm outline-none"
-        />
-        <div className="flex justify-end">
-          <button className="px-3 py-2 rounded bg-[#00CFFF] text-black">
-            Change password
-          </button>
-        </div>
-      </div>
-    </form>
-  );
-}
-
-/* -------------------------
-   End of component file
-   ------------------------- */
-
-// --------------------------------------------------------------------
-// Below: mock data file contents. Save as: /data/homeownerData.ts
-// --------------------------------------------------------------------
-
-/*
-  Place the code below in: /data/homeownerData.ts
-  Import path used in the component: "@/data/homeownerData"
-*/
+export default HomeownerDashboard;

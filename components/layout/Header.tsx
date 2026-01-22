@@ -125,7 +125,7 @@ const Header: React.FC = () => {
   const handleSignUp = () => router.push("/auth");
 
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-800 transition-colors duration-200 py-2">
+    <header className="fixed z-50 w-full bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-800 transition-colors duration-200 py-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
