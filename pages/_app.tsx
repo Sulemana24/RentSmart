@@ -23,7 +23,6 @@ function DarkModeWrapper({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Don't render until mounted to avoid hydration mismatch
   if (!mounted) {
     return null;
   }
@@ -35,7 +34,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>RentSmart</title>
+        <title>RentSmart </title>
         <meta
           name="description"
           content="Find and Book Your Perfect Rental Property Easily"

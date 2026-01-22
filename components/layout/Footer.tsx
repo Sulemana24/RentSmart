@@ -75,7 +75,7 @@ const Footer: React.FC = () => {
           {/* Quick Links */}
           <div>
             <h4 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
-              <span className="w-1 h-6 bg-[#FF4FA1] rounded-full"></span>
+              <span className="w-1 h-6 bg-[#00CFFF] rounded-full"></span>
               Quick Links
             </h4>
             <ul className="space-y-3">
@@ -102,7 +102,7 @@ const Footer: React.FC = () => {
           {/* Contact Info */}
           <div>
             <h4 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
-              <span className="w-1 h-6 bg-[#FF4FA1] rounded-full"></span>
+              <span className="w-1 h-6 bg-[#00CFFF] rounded-full"></span>
               Contact
             </h4>
             <ul className="space-y-4">
