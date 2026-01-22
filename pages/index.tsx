@@ -38,7 +38,6 @@ export default function Home() {
     fetchProperties();
   }, []);
 
-  // Search function
   const searchProperties = (property: PropertyProps) => {
     if (!searchQuery.trim()) return true;
 
@@ -55,10 +54,8 @@ export default function Home() {
     );
   };
 
-  // Filter properties based on search
   const filteredProperties = properties.filter(searchProperties);
 
-  // Filter top properties (high rating + discount)
   const topProperties = filteredProperties
     .filter((property) => property.rating >= 4.8 && property.discount)
     .slice(0, 6);
@@ -73,18 +70,15 @@ export default function Home() {
   );
   const hasMoreProperties = visiblePropertiesCount < filteredProperties.length;
 
-  // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setVisiblePropertiesCount(6);
   };
 
-  // Load more properties
   const loadMoreProperties = () => {
     setVisiblePropertiesCount((prev) => prev + 6);
   };
 
-  // Reset search and show all
   const showAllProperties = () => {
     setSearchQuery("");
     setVisiblePropertiesCount(6);
@@ -104,7 +98,6 @@ export default function Home() {
 
   return (
     <div className="space-y-16 pb-16">
-      {/* Hero Section */}
       <section className="relative pt-20 pb-32 md:pt-28 md:pb-40 text-white overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -113,7 +106,7 @@ export default function Home() {
               'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")',
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/60"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/50"></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -160,8 +153,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      {/*  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {[
             { value: "200+", label: "Properties", icon: <FiTrendingUp /> },
@@ -174,10 +166,8 @@ export default function Home() {
               className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg dark:shadow-xl border border-gray-100 dark:border-gray-700 text-center hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
             >
               <div className="flex justify-center mb-3">
-                <div className="p-3 bg-gradient-to-r from-[#FF4FA1]/10 to-[#00CFFF]/10 dark:from-[#FF4FA1]/20 dark:to-[#00CFFF]/20 rounded-xl">
-                  <div className="text-[#FF4FA1] dark:text-[#00CFFF] text-xl">
-                    {stat.icon}
-                  </div>
+                <div className="p-3 bg-[#00CFFF] dark:[#00CFFF] rounded-xl text-white">
+                  <div className="text-white text-xl">{stat.icon}</div>
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
@@ -189,7 +179,7 @@ export default function Home() {
             </div>
           ))}
         </div>
-      </div> */}
+      </div>
 
       {/* Search Section */}
       <section
@@ -238,14 +228,14 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Quick Search Tags */}
             <div className="flex flex-wrap gap-2 mt-4 justify-center">
               {[
                 "Accra",
+                "Kumasi",
                 "Apartments",
                 "Luxury",
                 "₵1,500-₵3,000",
-                "Pool",
+                "24h/water",
                 "3+ Beds",
               ].map((tag) => (
                 <button
@@ -260,9 +250,8 @@ export default function Home() {
             </div>
           </form>
 
-          {/* Search Results Info */}
           {searchQuery && (
-            <div className="mt-6 p-4 bg-gradient-to-r from-[#FF4FA1]/5 to-[#00CFFF]/5 dark:from-[#FF4FA1]/10 dark:to-[#00CFFF]/10 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 animate-fadeIn">
+            <div className="mt-6 p-4 bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 animate-fadeIn">
               <div className="flex flex-col md:flex-row items-center justify-between gap-3">
                 <div>
                   <p className="text-gray-700 dark:text-gray-300 font-medium">
@@ -318,7 +307,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Navigation Tabs */}
       {!searchQuery && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
@@ -359,7 +347,6 @@ export default function Home() {
       )}
 
       {searchQuery ? (
-        /* Search Results Section */
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-10 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -385,7 +372,6 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* View More Button for Search Results */}
               {hasMoreProperties && (
                 <div className="text-center mt-12">
                   <button
@@ -435,7 +421,6 @@ export default function Home() {
         </section>
       ) : (
         <div className="space-y-16">
-          {/* Top Properties Section */}
           {activeSection === "top" && (
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="mb-10">
@@ -468,7 +453,6 @@ export default function Home() {
             </section>
           )}
 
-          {/* New Listings Section */}
           {activeSection === "new" && (
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="mb-10">
@@ -500,7 +484,6 @@ export default function Home() {
             </section>
           )}
 
-          {/* All Properties Section */}
           {activeSection === "all" && (
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="mb-10">
@@ -519,7 +502,6 @@ export default function Home() {
                   ))}
                 </div>
 
-                {/* View More Button for All Properties */}
                 {hasMoreProperties && (
                   <div className="text-center mt-12">
                     <button

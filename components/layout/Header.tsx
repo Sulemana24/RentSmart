@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import Logo from "../../public/images/logo.jpg";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import {
   FiSun,
   FiMoon,
@@ -53,7 +53,6 @@ const Header: React.FC = () => {
     }
   }, []);
 
-  // Toggle dark mode
   const toggleDarkMode = () => {
     if (darkMode) {
       document.documentElement.classList.remove("dark");
@@ -66,31 +65,32 @@ const Header: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const role = localStorage.getItem("role");
-      const uid = auth.currentUser?.uid;
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setUserData(null);
+        return;
+      }
 
-      if (uid && role) {
-        try {
-          const snap = await getDoc(doc(db, "users", uid));
-          if (snap.exists()) {
-            const data = snap.data();
-            setUserData({
-              name: data.firstName || data.name || "User",
-              role: data.role,
-              email: data.email,
-            });
-          }
-        } catch (err) {
-          showToast({
-            title: "Failed",
-            message: "Failed to fetch user data!",
-            type: "error",
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists()) {
+          const data = snap.data();
+          setUserData({
+            name: data.firstName || data.name || "User",
+            role: data.role,
+            email: data.email,
           });
         }
+      } catch {
+        showToast({
+          title: "Failed",
+          message: "Failed to fetch user data!",
+          type: "error",
+        });
       }
-    };
-    fetchUser();
+    });
+
+    return () => unsub();
   }, []);
 
   useEffect(() => {
@@ -257,7 +257,7 @@ const Header: React.FC = () => {
                   onClick={handleSignUp}
                   className="bg-gradient-to-r from-[#FF4FA1] to-pink-400 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
                 >
-                  Sign Up
+                  Sign In
                 </button>
               </>
             )}
@@ -396,7 +396,7 @@ const Header: React.FC = () => {
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#FF4FA1] to-pink-400 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-lg transition-all duration-200"
                 >
                   <FiUser className="w-4 h-4" />
-                  Sign Up / Sign In
+                  Sign In
                 </button>
               </div>
             )}
