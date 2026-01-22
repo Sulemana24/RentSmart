@@ -1,1046 +1,1659 @@
 "use client";
-
-import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import {
-  Menu,
-  X,
-  Home,
-  List,
-  Users,
-  BookOpen,
-  User,
-  MessageCircle,
-  Eye,
-  Trash2,
-  Search,
-} from "lucide-react";
+  FiHome,
+  FiUsers,
+  FiDollarSign,
+  FiBarChart2,
+  FiSettings,
+  FiMessageSquare,
+  FiHelpCircle,
+  FiCalendar,
+  FiPlus,
+  FiTrash2,
+  FiEdit,
+  FiEye,
+  FiCheck,
+  FiX,
+  FiTrendingUp,
+  FiActivity,
+  FiUserCheck,
+  FiCreditCard,
+  FiBell,
+  FiSearch,
+  FiFilter,
+  FiDownload,
+  FiChevronDown,
+  FiChevronRight,
+  FiMenu,
+  FiSun,
+  FiMoon,
+  FiLogOut,
+} from "react-icons/fi";
 
-import adminData, {
-  PROPERTIES as MOCK_PROPERTIES,
-  HOMEOWNERS as MOCK_HOMEOWNERS,
-  BOOKINGS as MOCK_BOOKINGS,
-  GUESTS as MOCK_GUESTS,
-  MESSAGES as MOCK_MESSAGES,
-} from "@/constants/adminData";
-
-type Property = (typeof MOCK_PROPERTIES)[number];
-type Homeowner = (typeof MOCK_HOMEOWNERS)[number];
-type Booking = (typeof MOCK_BOOKINGS)[number];
-type Guest = (typeof MOCK_GUESTS)[number];
-type Message = (typeof MOCK_MESSAGES)[number];
-
-/* -------------------------
-  Component
-   ------------------------- */
-
-export default function AdminPage() {
+const AdminDashboard = () => {
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const router = useRouter();
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
 
-  // client-side role protection (mock). Adjust to your real auth later.
   useEffect(() => {
-    try {
-      const role = localStorage.getItem("role");
-      if (role !== "admin") {
-        router.replace("/login");
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
+
+    const initialDarkMode =
+      savedTheme === "dark" || (!savedTheme && prefersDark);
+    setDarkMode(initialDarkMode);
+
+    if (initialDarkMode) {
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileButtonRef.current?.contains(event.target as Node)) {
+        return;
       }
-    } catch {
-      router.replace("/login");
-    }
-  }, [router]);
 
-  // sidebar
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const toggleSidebar = () => setSidebarOpen((s) => !s);
-  const closeSidebar = () => setSidebarOpen(false);
+      if (
+        profileOpen &&
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    };
 
-  // active tab
-  const [activeTab, setActiveTab] = useState<
-    | "dashboard"
-    | "properties"
-    | "homeowners"
-    | "bookings"
-    | "guests"
-    | "communication"
-  >("dashboard");
+    document.addEventListener("mousedown", handleClickOutside);
 
-  // load data from adminData
-  const [properties, setProperties] = useState<Property[]>(
-    () => MOCK_PROPERTIES,
-  );
-  const [homeowners, setHomeowners] = useState<Homeowner[]>(
-    () => MOCK_HOMEOWNERS,
-  );
-  const [bookings, setBookings] = useState<Booking[]>(() => MOCK_BOOKINGS);
-  const [guests, setGuests] = useState<Guest[]>(() => MOCK_GUESTS);
-  const [messages, setMessages] = useState<Message[]>(() => MOCK_MESSAGES);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileOpen]);
 
-  // selection / modal
-  const [selected, setSelected] = useState<any | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
 
-  // search/filter states (one per tab)
-  const [propQuery, setPropQuery] = useState("");
-  const [homeownerQuery, setHomeownerQuery] = useState("");
-  const [bookingQuery, setBookingQuery] = useState("");
-  const [guestQuery, setGuestQuery] = useState("");
-  const [messageQuery, setMessageQuery] = useState("");
-
-  // derived summaries
-  const totalProperties = properties.length;
-  const totalHomeowners = homeowners.length;
-  const totalBookings = bookings.length;
-  const totalGuests = guests.length;
-  const totalRevenue = bookings.reduce((s, b) => s + (b.total || 0), 0);
-
-  // --- SEARCHED ARRAYS (memoized) ---
-  const filteredProperties = useMemo(() => {
-    const q = propQuery.toLowerCase().trim();
-    if (!q) return properties;
-    return properties.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.host?.toLowerCase().includes(q) ||
-        p.address.city?.toLowerCase().includes(q) ||
-        String(p.price).includes(q),
-    );
-  }, [propQuery, properties]);
-
-  const filteredHomeowners = useMemo(() => {
-    const q = homeownerQuery.toLowerCase().trim();
-    if (!q) return homeowners;
-    return homeowners.filter(
-      (h) =>
-        h.name.toLowerCase().includes(q) ||
-        h.email.toLowerCase().includes(q) ||
-        h.phone?.toLowerCase().includes(q),
-    );
-  }, [homeownerQuery, homeowners]);
-
-  const filteredBookings = useMemo(() => {
-    const q = bookingQuery.toLowerCase().trim();
-    if (!q) return bookings;
-    return bookings.filter(
-      (b) =>
-        b.id.toLowerCase().includes(q) ||
-        b.propertyName?.toLowerCase().includes(q) ||
-        b.guestName?.toLowerCase().includes(q) ||
-        b.homeowner?.toLowerCase().includes(q),
-    );
-  }, [bookingQuery, bookings]);
-
-  const filteredGuests = useMemo(() => {
-    const q = guestQuery.toLowerCase().trim();
-    if (!q) return guests;
-    return guests.filter(
-      (g) =>
-        g.name.toLowerCase().includes(q) ||
-        g.email.toLowerCase().includes(q) ||
-        g.phone?.toLowerCase().includes(q),
-    );
-  }, [guestQuery, guests]);
-
-  const filteredMessages = useMemo(() => {
-    const q = messageQuery.toLowerCase().trim();
-    if (!q) return messages;
-    return messages.filter(
-      (m) =>
-        m.from.toLowerCase().includes(q) ||
-        m.to.toLowerCase().includes(q) ||
-        (m.property || "").toLowerCase().includes(q) ||
-        m.message.toLowerCase().includes(q),
-    );
-  }, [messageQuery, messages]);
-
-  // ACTIONS
-  const confirmAndDelete = (
-    type: "property" | "homeowner" | "booking" | "guest" | "message",
-    id: number | string,
-  ) => {
-    const ok = confirm("Are you sure? This action is irreversible.");
-    if (!ok) return;
-    switch (type) {
-      case "property":
-        setProperties((prev) => prev.filter((p) => p.id !== id));
-        break;
-      case "homeowner":
-        setHomeowners((prev) => prev.filter((h) => h.id !== id));
-        break;
-      case "booking":
-        setBookings((prev) => prev.filter((b) => b.id !== id));
-        break;
-      case "guest":
-        setGuests((prev) => prev.filter((g) => g.id !== id));
-        break;
-      case "message":
-        setMessages((prev) => prev.filter((m) => m.id !== id));
-        break;
+    if (newDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
   };
 
-  const openView = (payload: any) => {
-    setSelected(payload);
-    setShowModal(true);
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("role");
+    localStorage.removeItem("adminData");
+    setProfileOpen(false);
+
+    router.push("/login");
+
+    alert("Admin session ended successfully!");
   };
 
-  /* -------------------------
-     RENDER
-     ------------------------- */
+  const dashboardStats = [
+    {
+      title: "Total Properties",
+      value: "156",
+      change: "+12%",
+      icon: <FiHome />,
+      color: "text-[#00CFFF]",
+      bgColor: "bg-[#00CFFF]/10",
+    },
+    {
+      title: "Total Users",
+      value: "2,458",
+      change: "+8%",
+      icon: <FiUsers />,
+      color: "text-green-500",
+      bgColor: "bg-green-500/10",
+    },
+    {
+      title: "Total Revenue",
+      value: "₵425,800",
+      change: "+23%",
+      icon: <FiDollarSign />,
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10",
+    },
+    {
+      title: "Active Bookings",
+      value: "89",
+      change: "+15%",
+      icon: <FiCalendar />,
+      color: "text-[#FF4FA1]",
+      bgColor: "bg-[#FF4FA1]/10",
+    },
+  ];
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Mobile top bar */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
-        <div className="flex items-center gap-2">
-          <button onClick={toggleSidebar} aria-label="toggle menu">
-            {sidebarOpen ? <X /> : <Menu />}
-          </button>
-          <h1 className="text-lg font-bold text-[#00CFFF]">Admin Panel</h1>
-        </div>
-      </div>
+  // Performance metrics
+  const performanceMetrics = [
+    { label: "Site Visits", value: "12.4K", change: "+18%" },
+    { label: "Conversion Rate", value: "4.2%", change: "+2.1%" },
+    { label: "Avg. Booking Value", value: "₵3,850", change: "+12%" },
+    { label: "User Satisfaction", value: "4.8/5", change: "+0.3" },
+  ];
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside
-          className={`fixed md:relative z-30 inset-y-0 left-0 transform ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          } transition-transform duration-200 w-64 bg-gray-800 border-r border-gray-700 p-6`}
-        >
-          <div className="hidden md:block mb-6">
-            <h2 className="text-2xl font-bold text-[#00CFFF]">Admin Panel</h2>
-          </div>
+  // Properties data
+  const properties = [
+    {
+      id: 1,
+      name: "Luxury Villa East Legon",
+      owner: "John Doe",
+      type: "Villa",
+      status: "Approved",
+      price: "₵15,000/month",
+      listed: "2024-03-01",
+    },
+    {
+      id: 2,
+      name: "Modern Apartment Osu",
+      owner: "Sarah Smith",
+      type: "Apartment",
+      status: "Pending",
+      price: "₵4,500/month",
+      listed: "2024-03-05",
+    },
+    {
+      id: 3,
+      name: "Commercial Space Airport",
+      owner: "Kwame Asante",
+      type: "Commercial",
+      status: "Approved",
+      price: "₵25,000/month",
+      listed: "2024-02-28",
+    },
+    {
+      id: 4,
+      name: "Studio Apartments Cantonments",
+      owner: "Ama Serwaa",
+      type: "Studio",
+      status: "Rejected",
+      price: "₵1,800/month",
+      listed: "2024-03-10",
+    },
+    {
+      id: 5,
+      name: "Family House Labone",
+      owner: "Michael Johnson",
+      type: "House",
+      status: "Approved",
+      price: "₵8,000/month",
+      listed: "2024-03-08",
+    },
+  ];
 
-          <nav className="space-y-2">
-            <SidebarBtn
-              label="Dashboard"
-              icon={<Home size={16} />}
-              active={activeTab === "dashboard"}
-              onClick={() => {
-                setActiveTab("dashboard");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Properties"
-              icon={<List size={16} />}
-              active={activeTab === "properties"}
-              onClick={() => {
-                setActiveTab("properties");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Homeowners"
-              icon={<Users size={16} />}
-              active={activeTab === "homeowners"}
-              onClick={() => {
-                setActiveTab("homeowners");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Bookings"
-              icon={<BookOpen size={16} />}
-              active={activeTab === "bookings"}
-              onClick={() => {
-                setActiveTab("bookings");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Guests"
-              icon={<User size={16} />}
-              active={activeTab === "guests"}
-              onClick={() => {
-                setActiveTab("guests");
-                closeSidebar();
-              }}
-            />
-            <SidebarBtn
-              label="Communication"
-              icon={<MessageCircle size={16} />}
-              active={activeTab === "communication"}
-              onClick={() => {
-                setActiveTab("communication");
-                closeSidebar();
-              }}
-            />
-          </nav>
+  // Payments data
+  const payments = [
+    {
+      id: 1,
+      agent: "John Doe",
+      property: "Luxury Villa",
+      amount: "₵15,000",
+      commission: "₵1,500",
+      date: "2024-03-15",
+      status: "Paid",
+    },
+    {
+      id: 2,
+      agent: "Sarah Smith",
+      property: "Modern Apartment",
+      amount: "₵4,500",
+      commission: "₵450",
+      date: "2024-03-14",
+      status: "Pending",
+    },
+    {
+      id: 3,
+      agent: "Kwame Asante",
+      property: "Commercial Space",
+      amount: "₵25,000",
+      commission: "₵2,500",
+      date: "2024-03-12",
+      status: "Paid",
+    },
+    {
+      id: 4,
+      agent: "Ama Serwaa",
+      property: "Studio Apartments",
+      amount: "₵1,800",
+      commission: "₵180",
+      date: "2024-03-10",
+      status: "Rejected",
+    },
+  ];
 
-          <div className="mt-8 text-sm text-gray-300">
-            <div>Signed in as</div>
-            <div className="mt-1 font-medium">Administrator</div>
-            <button
-              className="mt-4 bg-[#FF4FA1] px-3 py-2 rounded-lg font-semibold"
-              onClick={() => {
-                localStorage.removeItem("role");
-                router.push("/login");
-              }}
-            >
-              Logout
-            </button>
-          </div>
-        </aside>
+  // Bookings data
+  const bookings = [
+    {
+      id: 1,
+      user: "David Wilson",
+      property: "Luxury Villa",
+      type: "Tour",
+      date: "2024-03-20",
+      time: "10:00 AM",
+      status: "Confirmed",
+    },
+    {
+      id: 2,
+      user: "Emily Brown",
+      property: "Modern Apartment",
+      type: "Rental",
+      date: "2024-03-22",
+      time: "2:30 PM",
+      status: "Pending",
+    },
+    {
+      id: 3,
+      user: "James Miller",
+      property: "Commercial Space",
+      type: "Tour",
+      date: "2024-03-18",
+      time: "11:00 AM",
+      status: "Completed",
+    },
+    {
+      id: 4,
+      user: "Lisa Taylor",
+      property: "Family House",
+      type: "Rental",
+      date: "2024-03-25",
+      time: "3:00 PM",
+      status: "Cancelled",
+    },
+  ];
 
-        {/* mobile overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-20 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+  // Support tickets
+  const supportTickets = [
+    {
+      id: "TKT-2024-001",
+      user: "John Mensah",
+      subject: "Payment Issue",
+      priority: "High",
+      status: "Open",
+      created: "2024-03-14",
+    },
+    {
+      id: "TKT-2024-002",
+      user: "Sarah Johnson",
+      subject: "Property Listing",
+      priority: "Medium",
+      status: "In Progress",
+      created: "2024-03-12",
+    },
+    {
+      id: "TKT-2024-003",
+      user: "Kwame Asare",
+      subject: "Account Access",
+      priority: "Low",
+      status: "Resolved",
+      created: "2024-03-10",
+    },
+    {
+      id: "TKT-2024-004",
+      user: "Ama Boateng",
+      subject: "Booking Problem",
+      priority: "High",
+      status: "Open",
+      created: "2024-03-15",
+    },
+  ];
 
-        {/* Main content */}
-        <main
-          className={`flex-1 transition-all duration-200 ${
-            sidebarOpen ? "blur-sm md:blur-0" : ""
-          } p-4 md:p-8`}
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">
-              {activeTab === "dashboard" && "Dashboard Overview"}
-              {activeTab === "properties" && "All Properties"}
-              {activeTab === "homeowners" && "Homeowners"}
-              {activeTab === "bookings" && "Bookings"}
-              {activeTab === "guests" && "Guests"}
-              {activeTab === "communication" && "Communication"}
-            </h2>
-            <div className="hidden md:flex items-center gap-4 text-gray-300">
-              <div>Admin</div>
+  // Menu items
+  const menuItems = [
+    { id: "dashboard", label: "Dashboard", icon: <FiBarChart2 /> },
+    { id: "properties", label: "Properties", icon: <FiHome /> },
+    { id: "payments", label: "Payments", icon: <FiDollarSign /> },
+    { id: "bookings", label: "Bookings", icon: <FiCalendar /> },
+    { id: "users", label: "Users", icon: <FiUsers /> },
+    { id: "messages", label: "Messages", icon: <FiMessageSquare /> },
+    { id: "support", label: "Support", icon: <FiHelpCircle /> },
+    { id: "settings", label: "Settings", icon: <FiSettings /> },
+  ];
+
+  // Render active section content
+  const renderSection = () => {
+    switch (activeSection) {
+      case "dashboard":
+        return (
+          <div className="space-y-6">
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {dashboardStats.map((stat, index) => (
+                <div
+                  key={index}
+                  className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-lg ${stat.bgColor} ${stat.color}`}
+                    >
+                      {stat.icon}
+                    </div>
+                    <span className="text-sm font-medium text-green-500 bg-green-500/10 px-2 py-1 rounded">
+                      {stat.change}
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {stat.title}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
 
-          {/* ---------- DASHBOARD ---------- */}
-          {activeTab === "dashboard" && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <StatCard
-                  label="Properties"
-                  value={totalProperties}
-                  color="pink"
-                />
-                <StatCard
-                  label="Homeowners"
-                  value={totalHomeowners}
-                  color="teal"
-                />
-                <StatCard label="Bookings" value={totalBookings} color="pink" />
-                <StatCard label="Guests" value={totalGuests} color="teal" />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                  <h3 className="font-semibold mb-4">Recent Properties</h3>
-                  <div className="space-y-3">
-                    {properties.slice(0, 6).map((p) => (
-                      <div key={p.id} className="flex items-center gap-3">
-                        {p.image && (
-                          <img
-                            src={p.image}
-                            alt={p.name}
-                            className="w-16 h-12 object-cover rounded"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <div className="font-semibold">{p.name}</div>
-                          <div className="text-xs text-gray-400">
-                            {p.address.city}, {p.address.state}
-                          </div>
-                        </div>
-                        <div className="text-sm text-[#FF4FA1]">
-                          Ghc {p.price}
-                        </div>
-                      </div>
-                    ))}
+            {/* Performance Metrics */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                Performance Metrics
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {performanceMetrics.map((metric, index) => (
+                  <div
+                    key={index}
+                    className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+                  >
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {metric.value}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      {metric.label}
+                    </div>
+                    <div className="text-xs text-green-500 bg-green-500/10 px-2 py-1 rounded-full inline-block">
+                      {metric.change}
+                    </div>
                   </div>
-                </div>
-
-                <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                  <h3 className="font-semibold mb-4">Recent Messages</h3>
-                  <div className="space-y-3">
-                    {messages.slice(0, 6).map((m) => (
-                      <div key={m.id} className="p-3 bg-gray-900 rounded">
-                        <div className="flex justify-between">
-                          <div>
-                            <div className="font-semibold">
-                              {m.from} → {m.to}
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              {m.property} • {m.date}
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-300">
-                            {m.status}
-                          </div>
-                        </div>
-                        <div className="mt-2 text-sm text-gray-200">
-                          {m.message.slice(0, 100)}
-                          {m.message.length > 100 ? "..." : ""}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                ))}
               </div>
-            </>
-          )}
+            </div>
 
-          {/* ---------- PROPERTIES ---------- */}
-          {activeTab === "properties" && (
-            <>
-              <TableToolbar
-                placeholder="Search properties by name, host, city or price..."
-                value={propQuery}
-                onChange={(v) => setPropQuery(v)}
-                onClear={() => setPropQuery("")}
-              />
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-auto">
-                <table className="min-w-full text-sm text-left text-gray-300">
-                  <thead className="bg-gray-700 text-gray-200 sticky top-0">
-                    <tr>
-                      <th className="px-4 py-3">Name</th>
-                      <th className="px-4 py-3">Owner</th>
-                      <th className="px-4 py-3">Location</th>
-                      <th className="px-4 py-3">Beds</th>
-                      <th className="px-4 py-3">Price</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredProperties.map((p) => (
-                      <tr
-                        key={p.id}
-                        className="border-t border-gray-700 hover:bg-gray-700/30"
-                      >
-                        <td className="px-4 py-3">{p.name}</td>
-                        <td className="px-4 py-3">{p.host}</td>
-                        <td className="px-4 py-3">
-                          {p.address.city}, {p.address.state}
-                        </td>
-                        <td className="px-4 py-3">{p.beds}</td>
-                        <td className="px-4 py-3">Ghc {p.price}</td>
-                        <td className="px-4 py-3">
-                          {p.isActive ? "Active" : "Inactive"}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="inline-flex items-center gap-2">
-                            <button
-                              onClick={() => openView(p)}
-                              className="text-[#00CFFF]"
-                              title="View"
-                            >
-                              <Eye />
-                            </button>
-                            <button
-                              onClick={() => confirmAndDelete("property", p.id)}
-                              className="text-red-500"
-                              title="Delete"
-                            >
-                              <Trash2 />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredProperties.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="px-4 py-6 text-center text-gray-400"
-                        >
-                          No properties
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-
-          {/* ---------- HOMEOWNERS ---------- */}
-          {activeTab === "homeowners" && (
-            <>
-              <TableToolbar
-                placeholder="Search homeowners by name, email or phone..."
-                value={homeownerQuery}
-                onChange={(v) => setHomeownerQuery(v)}
-                onClear={() => setHomeownerQuery("")}
-              />
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-auto">
-                <table className="min-w-full text-sm text-left text-gray-300">
-                  <thead className="bg-gray-700 text-gray-200 sticky top-0">
-                    <tr>
-                      <th className="px-4 py-3">Name</th>
-                      <th className="px-4 py-3">Email</th>
-                      <th className="px-4 py-3">Phone</th>
-                      <th className="px-4 py-3"># Properties</th>
-                      <th className="px-4 py-3">Payment</th>
-                      <th className="px-4 py-3 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredHomeowners.map((h) => {
-                      const count = properties.filter(
-                        (p) => p.host === h.name,
-                      ).length;
-                      return (
-                        <tr
-                          key={h.id}
-                          className="border-t border-gray-700 hover:bg-gray-700/30"
-                        >
-                          <td className="px-4 py-3">{h.name}</td>
-                          <td className="px-4 py-3">{h.email}</td>
-                          <td className="px-4 py-3">{h.phone}</td>
-                          <td className="px-4 py-3">{count}</td>
-                          <td className="px-4 py-3">{h.paymentInfo}</td>
-                          <td className="px-4 py-3 text-center">
-                            <div className="inline-flex items-center gap-2">
-                              <button
-                                onClick={() => openView(h)}
-                                className="text-[#00CFFF]"
-                                title="View"
-                              >
-                                <Eye />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  confirmAndDelete("homeowner", h.id)
-                                }
-                                className="text-red-500"
-                                title="Delete"
-                              >
-                                <Trash2 />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    {filteredHomeowners.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="px-4 py-6 text-center text-gray-400"
-                        >
-                          No homeowners
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-
-          {/* ---------- BOOKINGS ---------- */}
-          {activeTab === "bookings" && (
-            <>
-              <TableToolbar
-                placeholder="Search bookings by id, property, guest or homeowner..."
-                value={bookingQuery}
-                onChange={(v) => setBookingQuery(v)}
-                onClear={() => setBookingQuery("")}
-              />
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-auto">
-                <table className="min-w-full text-sm text-left text-gray-300">
-                  <thead className="bg-gray-700 text-gray-200 sticky top-0">
-                    <tr>
-                      <th className="px-4 py-3">Homeowner</th>
-                      <th className="px-4 py-3">Guest</th>
-                      <th className="px-4 py-3">Property</th>
-                      <th className="px-4 py-3">Location</th>
-                      <th className="px-4 py-3">Duration</th>
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3">Amount</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredBookings.map((b) => (
-                      <tr
-                        key={b.id}
-                        className="border-t border-gray-700 hover:bg-gray-700/30"
-                      >
-                        <td className="px-4 py-3">{b.homeowner}</td>
-                        <td className="px-4 py-3">{b.guestName}</td>
-                        <td className="px-4 py-3">{b.propertyName}</td>
-                        <td className="px-4 py-3">{b.location}</td>
-                        <td className="px-4 py-3">{b.duration}</td>
-                        <td className="px-4 py-3">{b.startDate}</td>
-                        <td className="px-4 py-3">Ghc {b.total}</td>
-                        <td className="px-4 py-3">{b.status}</td>
-                        <td className="px-4 py-3 text-center">
-                          <div className="inline-flex items-center gap-2">
-                            <button
-                              onClick={() => openView(b)}
-                              className="text-[#00CFFF]"
-                              title="View"
-                            >
-                              <Eye />
-                            </button>
-                            <button
-                              onClick={() => confirmAndDelete("booking", b.id)}
-                              className="text-red-500"
-                              title="Delete"
-                            >
-                              <Trash2 />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredBookings.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={9}
-                          className="px-4 py-6 text-center text-gray-400"
-                        >
-                          No bookings
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-
-          {/* ---------- GUESTS ---------- */}
-          {activeTab === "guests" && (
-            <>
-              <TableToolbar
-                placeholder="Search guests by name, email or phone..."
-                value={guestQuery}
-                onChange={(v) => setGuestQuery(v)}
-                onClear={() => setGuestQuery("")}
-              />
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-auto">
-                <table className="min-w-full text-sm text-left text-gray-300">
-                  <thead className="bg-gray-700 text-gray-200 sticky top-0">
-                    <tr>
-                      <th className="px-4 py-3">Name</th>
-                      <th className="px-4 py-3">Email</th>
-                      <th className="px-4 py-3">Phone</th>
-                      <th className="px-4 py-3">Total Bookings</th>
-                      <th className="px-4 py-3">Total Spent</th>
-                      <th className="px-4 py-3 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredGuests.map((g) => {
-                      const guestBookings = bookings.filter(
-                        (b) => b.guestName === g.name,
-                      );
-                      const totalSpent = guestBookings.reduce(
-                        (s, bk) => s + (bk.total || 0),
-                        0,
-                      );
-                      return (
-                        <tr
-                          key={g.id}
-                          className="border-t border-gray-700 hover:bg-gray-700/30"
-                        >
-                          <td className="px-4 py-3">{g.name}</td>
-                          <td className="px-4 py-3">{g.email}</td>
-                          <td className="px-4 py-3">{g.phone}</td>
-                          <td className="px-4 py-3">{guestBookings.length}</td>
-                          <td className="px-4 py-3">Ghc {totalSpent}</td>
-                          <td className="px-4 py-3 text-center">
-                            <div className="inline-flex items-center gap-2">
-                              <button
-                                onClick={() => openView(g)}
-                                className="text-[#00CFFF]"
-                                title="View"
-                              >
-                                <Eye />
-                              </button>
-                              <button
-                                onClick={() => confirmAndDelete("guest", g.id)}
-                                className="text-red-500"
-                                title="Delete"
-                              >
-                                <Trash2 />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    {filteredGuests.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="px-4 py-6 text-center text-gray-400"
-                        >
-                          No guests
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-
-          {/* ---------- COMMUNICATION ---------- */}
-          {activeTab === "communication" && (
-            <>
-              <TableToolbar
-                placeholder="Search messages by guest, homeowner, property or text..."
-                value={messageQuery}
-                onChange={(v) => setMessageQuery(v)}
-                onClear={() => setMessageQuery("")}
-              />
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="col-span-1 bg-gray-800 rounded-xl border border-gray-700 p-4 max-h-[60vh] overflow-auto">
-                  <h3 className="font-semibold mb-3">Messages</h3>
-                  <div className="space-y-3">
-                    {filteredMessages.map((m) => (
-                      <div key={m.id} className="p-3 bg-gray-900 rounded">
-                        <div className="flex justify-between">
-                          <div>
-                            <div className="font-semibold">
-                              {m.from} → {m.to}
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              {m.property} • {m.date}
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-300">
-                            {m.status}
-                          </div>
-                        </div>
-                        <div className="mt-2 text-sm text-gray-200">
-                          {m.message.slice(0, 140)}
-                          {m.message.length > 140 ? "..." : ""}
-                        </div>
-                        <div className="mt-3 flex gap-2">
-                          <button
-                            onClick={() => openView(m)}
-                            className="text-[#00CFFF] text-sm"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => confirmAndDelete("message", m.id)}
-                            className="text-red-500 text-sm"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {filteredMessages.length === 0 && (
-                      <div className="text-gray-400">No messages</div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="col-span-2 bg-gray-800 rounded-xl border border-gray-700 p-4">
-                  <h3 className="font-semibold mb-4">
-                    Conversation (latest messages)
+            {/* Recent Activities */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Properties */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Recent Properties
                   </h3>
-                  <div className="max-h-[56vh] overflow-auto space-y-3 mb-4">
-                    {messages.slice(0, 20).map((m) => (
-                      <div key={m.id} className="p-3 rounded bg-gray-900">
-                        <div className="flex justify-between">
-                          <div className="font-semibold">
-                            {m.from} → {m.to}
-                          </div>
-                          <div className="text-xs text-gray-400">{m.date}</div>
+                  <button className="text-sm text-[#00CFFF] hover:text-[#FF4FA1] transition-colors">
+                    View All
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {properties.slice(0, 4).map((property) => (
+                    <div
+                      key={property.id}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+                    >
+                      <div>
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {property.name}
                         </div>
-                        <div className="mt-2 text-sm text-gray-200">
-                          {m.message}
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {property.owner} • {property.type}
+                        </div>
+                      </div>
+                      <div
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          property.status === "Approved"
+                            ? "bg-green-500/10 text-green-600"
+                            : property.status === "Pending"
+                              ? "bg-yellow-500/10 text-yellow-600"
+                              : "bg-red-500/10 text-red-600"
+                        }`}
+                      >
+                        {property.status}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recent Payments */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Recent Payments
+                  </h3>
+                  <button className="text-sm text-[#00CFFF] hover:text-[#FF4FA1] transition-colors">
+                    View All
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {payments.slice(0, 4).map((payment) => (
+                    <div
+                      key={payment.id}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+                    >
+                      <div>
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {payment.agent}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {payment.property} • {payment.date}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-900 dark:text-white">
+                          {payment.amount}
+                        </div>
+                        <div
+                          className={`text-xs ${
+                            payment.status === "Paid"
+                              ? "text-green-500"
+                              : payment.status === "Pending"
+                                ? "text-yellow-500"
+                                : "text-red-500"
+                          }`}
+                        >
+                          {payment.status}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                Quick Actions
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  {
+                    label: "Add Property",
+                    icon: <FiPlus />,
+                    color: "text-[#00CFFF]",
+                  },
+                  {
+                    label: "Manage Users",
+                    icon: <FiUsers />,
+                    color: "text-green-500",
+                  },
+                  {
+                    label: "View Reports",
+                    icon: <FiDownload />,
+                    color: "text-purple-500",
+                  },
+                  {
+                    label: "Send Notification",
+                    icon: <FiBell />,
+                    color: "text-[#FF4FA1]",
+                  },
+                ].map((action, index) => (
+                  <button
+                    key={index}
+                    className="flex flex-col items-center justify-center p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <div className={`text-2xl mb-2 ${action.color}`}>
+                      {action.icon}
+                    </div>
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {action.label}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case "properties":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Properties Management
+                </h2>
+                <div className="flex items-center gap-3">
+                  <button className="px-4 py-2 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90 flex items-center gap-2">
+                    <FiPlus />
+                    Add Property
+                  </button>
+                  <div className="relative">
+                    <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search properties..."
+                      className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-48 md:w-64"
+                    />
+                  </div>
+                  <button className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <FiFilter />
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Property
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Owner
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Type
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Status
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Price
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {properties.map((property) => (
+                      <tr
+                        key={property.id}
+                        className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                      >
+                        <td className="py-4 px-4">
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {property.name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {property.listed}
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                          {property.owner}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+                            {property.type}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              property.status === "Approved"
+                                ? "bg-green-500/10 text-green-600"
+                                : property.status === "Pending"
+                                  ? "bg-yellow-500/10 text-yellow-600"
+                                  : "bg-red-500/10 text-red-600"
+                            }`}
+                          >
+                            {property.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 font-medium text-gray-900 dark:text-white">
+                          {property.price}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#00CFFF] hover:bg-[#00CFFF]/10 rounded-lg transition-colors">
+                              <FiEye />
+                            </button>
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors">
+                              <FiEdit />
+                            </button>
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#FF4FA1] hover:bg-[#FF4FA1]/10 rounded-lg transition-colors">
+                              <FiTrash2 />
+                            </button>
+                            {property.status === "Pending" && (
+                              <div className="flex items-center gap-1">
+                                <button className="p-1.5 text-green-500 hover:bg-green-500/10 rounded-lg">
+                                  <FiCheck />
+                                </button>
+                                <button className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg">
+                                  <FiX />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex items-center justify-between mt-6">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Showing {properties.length} of 156 properties
+                </div>
+                <div className="flex items-center gap-2">
+                  <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Previous
+                  </button>
+                  <button className="px-4 py-2 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90">
+                    1
+                  </button>
+                  <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "payments":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Payments Management
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                {[
+                  {
+                    label: "Total Revenue",
+                    value: "₵425,800",
+                    color: "bg-green-500/10 text-green-600",
+                  },
+                  {
+                    label: "Pending Payments",
+                    value: "₵24,300",
+                    color: "bg-yellow-500/10 text-yellow-600",
+                  },
+                  {
+                    label: "Commission Due",
+                    value: "₵42,580",
+                    color: "bg-blue-500/10 text-blue-600",
+                  },
+                ].map((stat, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6"
+                  >
+                    <div
+                      className={`text-3xl font-bold mb-2 ${stat.color.split(" ")[1]}`}
+                    >
+                      {stat.value}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Commission Notifications */}
+              <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Send Commission Notifications
+                </h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <select className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                      <option>Select Agent</option>
+                      <option>John Doe</option>
+                      <option>Sarah Smith</option>
+                      <option>Kwame Asante</option>
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Commission Amount"
+                      className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                    <button className="px-4 py-3 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90 flex items-center justify-center gap-2">
+                      <FiBell />
+                      Notify Agent
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payments Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Agent
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Property
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Amount
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Commission
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Date
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Status
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.map((payment) => (
+                      <tr
+                        key={payment.id}
+                        className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                      >
+                        <td className="py-4 px-4 font-medium text-gray-900 dark:text-white">
+                          {payment.agent}
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                          {payment.property}
+                        </td>
+                        <td className="py-4 px-4 font-medium text-gray-900 dark:text-white">
+                          {payment.amount}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="px-3 py-1 bg-blue-500/10 text-blue-600 rounded-full text-xs font-medium">
+                            {payment.commission}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                          {payment.date}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              payment.status === "Paid"
+                                ? "bg-green-500/10 text-green-600"
+                                : payment.status === "Pending"
+                                  ? "bg-yellow-500/10 text-yellow-600"
+                                  : "bg-red-500/10 text-red-600"
+                            }`}
+                          >
+                            {payment.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#00CFFF] hover:bg-[#00CFFF]/10 rounded-lg">
+                              <FiEye />
+                            </button>
+                            {payment.status === "Pending" && (
+                              <button className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 flex items-center gap-1">
+                                <FiCheck />
+                                Approve
+                              </button>
+                            )}
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#FF4FA1] hover:bg-[#FF4FA1]/10 rounded-lg">
+                              <FiBell />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "bookings":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Bookings Management
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                {[
+                  {
+                    label: "Total Bookings",
+                    value: "156",
+                    color: "bg-[#00CFFF]/10 text-[#00CFFF]",
+                  },
+                  {
+                    label: "Tour Bookings",
+                    value: "89",
+                    color: "bg-purple-500/10 text-purple-600",
+                  },
+                  {
+                    label: "Rental Bookings",
+                    value: "67",
+                    color: "bg-green-500/10 text-green-600",
+                  },
+                  {
+                    label: "Pending",
+                    value: "12",
+                    color: "bg-yellow-500/10 text-yellow-600",
+                  },
+                ].map((stat, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6"
+                  >
+                    <div
+                      className={`text-3xl font-bold mb-2 ${stat.color.split(" ")[1]}`}
+                    >
+                      {stat.value}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        User
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Property
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Type
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Date & Time
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Status
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookings.map((booking) => (
+                      <tr
+                        key={booking.id}
+                        className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                      >
+                        <td className="py-4 px-4 font-medium text-gray-900 dark:text-white">
+                          {booking.user}
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                          {booking.property}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              booking.type === "Tour"
+                                ? "bg-blue-500/10 text-blue-600"
+                                : "bg-green-500/10 text-green-600"
+                            }`}
+                          >
+                            {booking.type}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                          {booking.date} at {booking.time}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              booking.status === "Confirmed"
+                                ? "bg-green-500/10 text-green-600"
+                                : booking.status === "Pending"
+                                  ? "bg-yellow-500/10 text-yellow-600"
+                                  : booking.status === "Completed"
+                                    ? "bg-blue-500/10 text-blue-600"
+                                    : "bg-red-500/10 text-red-600"
+                            }`}
+                          >
+                            {booking.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#00CFFF] hover:bg-[#00CFFF]/10 rounded-lg">
+                              <FiEye />
+                            </button>
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-500 hover:bg-green-500/10 rounded-lg">
+                              <FiEdit />
+                            </button>
+                            {booking.status === "Pending" && (
+                              <button className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">
+                                Approve
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "users":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Users Management
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                {[
+                  {
+                    label: "Total Users",
+                    value: "2,458",
+                    icon: <FiUsers />,
+                    color: "text-[#00CFFF]",
+                  },
+                  {
+                    label: "Homeowners",
+                    value: "156",
+                    icon: <FiHome />,
+                    color: "text-green-500",
+                  },
+                  {
+                    label: "Renters",
+                    value: "2,102",
+                    icon: <FiUserCheck />,
+                    color: "text-purple-500",
+                  },
+                  {
+                    label: "Agents",
+                    value: "200",
+                    icon: <FiActivity />,
+                    color: "text-[#FF4FA1]",
+                  },
+                ].map((stat, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6"
+                  >
+                    <div className={`text-3xl font-bold mb-2 ${stat.color}`}>
+                      {stat.value}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        User
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Email
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Role
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Joined
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Status
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      {
+                        name: "John Doe",
+                        email: "john@example.com",
+                        role: "Homeowner",
+                        joined: "2024-01-15",
+                        status: "Active",
+                      },
+                      {
+                        name: "Sarah Smith",
+                        email: "sarah@example.com",
+                        role: "Agent",
+                        joined: "2024-02-20",
+                        status: "Active",
+                      },
+                      {
+                        name: "Kwame Asante",
+                        email: "kwame@example.com",
+                        role: "Renter",
+                        joined: "2024-03-01",
+                        status: "Active",
+                      },
+                      {
+                        name: "Ama Serwaa",
+                        email: "ama@example.com",
+                        role: "Homeowner",
+                        joined: "2024-02-10",
+                        status: "Inactive",
+                      },
+                      {
+                        name: "Michael Johnson",
+                        email: "michael@example.com",
+                        role: "Agent",
+                        joined: "2024-03-05",
+                        status: "Active",
+                      },
+                    ].map((user, index) => (
+                      <tr
+                        key={index}
+                        className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                      >
+                        <td className="py-4 px-4">
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {user.name}
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                          {user.email}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              user.role === "Homeowner"
+                                ? "bg-blue-500/10 text-blue-600"
+                                : user.role === "Agent"
+                                  ? "bg-green-500/10 text-green-600"
+                                  : "bg-purple-500/10 text-purple-600"
+                            }`}
+                          >
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                          {user.joined}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              user.status === "Active"
+                                ? "bg-green-500/10 text-green-600"
+                                : "bg-red-500/10 text-red-600"
+                            }`}
+                          >
+                            {user.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#00CFFF] hover:bg-[#00CFFF]/10 rounded-lg">
+                              <FiEye />
+                            </button>
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-500 hover:bg-green-500/10 rounded-lg">
+                              <FiEdit />
+                            </button>
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#FF4FA1] hover:bg-[#FF4FA1]/10 rounded-lg">
+                              <FiTrash2 />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "messages":
+        return (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+              Messages
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Contacts */}
+              <div className="lg:col-span-1 border border-gray-200 dark:border-gray-700 rounded-xl">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Contacts
+                  </h3>
+                </div>
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {[
+                    { name: "John Doe (Homeowner)", unread: 2 },
+                    { name: "Sarah Smith (Agent)", unread: 0 },
+                    { name: "Support Team", unread: 1 },
+                    { name: "System Notifications", unread: 0 },
+                    { name: "Kwame Asante (Renter)", unread: 3 },
+                  ].map((contact, index) => (
+                    <button
+                      key={index}
+                      className="w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors relative"
+                    >
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {contact.name}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Last message 2 hours ago
+                      </div>
+                      {contact.unread > 0 && (
+                        <div className="absolute right-4 top-4 bg-[#FF4FA1] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                          {contact.unread}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chat */}
+              <div className="lg:col-span-2 flex flex-col border border-gray-200 dark:border-gray-700 rounded-xl">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="font-semibold text-gray-900 dark:text-white">
+                    John Doe (Homeowner)
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Property: Luxury Villa East Legon
+                  </div>
+                </div>
+
+                <div className="flex-grow p-4 space-y-4 overflow-y-auto max-h-[400px]">
+                  <div className="flex justify-start">
+                    <div className="max-w-[70%] bg-gray-100 dark:bg-gray-700 rounded-xl p-3">
+                      <div className="text-gray-900 dark:text-white">
+                        Hi Admin, I'm having issues with my property listing
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">10:30 AM</div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="max-w-[70%] bg-[#00CFFF] text-white rounded-xl p-3">
+                      <div>
+                        Hi John, what seems to be the problem? I can help you
+                        with that.
+                      </div>
+                      <div className="text-xs text-white/80 mt-1">10:35 AM</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      placeholder="Type your message..."
+                      className="flex-grow px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                    <button className="px-6 py-3 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90">
+                      Send
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "support":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Support Center
+              </h2>
+
+              <div className="overflow-x-auto mb-8">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Ticket ID
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        User
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Subject
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Priority
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Status
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Created
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {supportTickets.map((ticket) => (
+                      <tr
+                        key={ticket.id}
+                        className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                      >
+                        <td className="py-4 px-4 font-medium text-gray-900 dark:text-white">
+                          {ticket.id}
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                          {ticket.user}
+                        </td>
+                        <td className="py-4 px-4 font-medium text-gray-900 dark:text-white">
+                          {ticket.subject}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              ticket.priority === "High"
+                                ? "bg-red-500/10 text-red-600"
+                                : ticket.priority === "Medium"
+                                  ? "bg-yellow-500/10 text-yellow-600"
+                                  : "bg-blue-500/10 text-blue-600"
+                            }`}
+                          >
+                            {ticket.priority}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              ticket.status === "Open"
+                                ? "bg-yellow-500/10 text-yellow-600"
+                                : ticket.status === "In Progress"
+                                  ? "bg-blue-500/10 text-blue-600"
+                                  : "bg-green-500/10 text-green-600"
+                            }`}
+                          >
+                            {ticket.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 dark:text-gray-400">
+                          {ticket.created}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#00CFFF] hover:bg-[#00CFFF]/10 rounded-lg">
+                              <FiEye />
+                            </button>
+                            <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-500 hover:bg-green-500/10 rounded-lg">
+                              <FiEdit />
+                            </button>
+                            {ticket.status === "Open" && (
+                              <button className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600">
+                                Assign
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  {
+                    label: "Open Tickets",
+                    value: "8",
+                    color: "bg-yellow-500/10 text-yellow-600",
+                  },
+                  {
+                    label: "In Progress",
+                    value: "5",
+                    color: "bg-blue-500/10 text-blue-600",
+                  },
+                  {
+                    label: "Resolved Today",
+                    value: "12",
+                    color: "bg-green-500/10 text-green-600",
+                  },
+                ].map((stat, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6 text-center"
+                  >
+                    <div
+                      className={`text-3xl font-bold mb-2 ${stat.color.split(" ")[1]}`}
+                    >
+                      {stat.value}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case "settings":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Admin Settings
+              </h2>
+
+              <div className="space-y-8">
+                {/* General Settings */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    General Settings
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Site Name
+                      </label>
+                      <input
+                        type="text"
+                        defaultValue="RentSmart"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Commission Rate (%)
+                      </label>
+                      <input
+                        type="number"
+                        defaultValue="10"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Contact Email
+                      </label>
+                      <input
+                        type="email"
+                        defaultValue="admin@rentsmart.com"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Contact Phone
+                      </label>
+                      <input
+                        type="tel"
+                        defaultValue="+233 20 123 4567"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Email Settings */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Email Settings
+                  </h3>
+                  <div className="space-y-3">
+                    {[
+                      {
+                        label: "Send booking confirmations",
+                        defaultChecked: true,
+                      },
+                      { label: "Send payment receipts", defaultChecked: true },
+                      {
+                        label: "Send commission notifications",
+                        defaultChecked: true,
+                      },
+                      { label: "Send system updates", defaultChecked: false },
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          defaultChecked={item.defaultChecked}
+                          className="mt-1"
+                        />
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {item.label}
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
+                </div>
 
-                  <ReplyBox
-                    onSend={(text) => {
-                      if (!text.trim()) return alert("Reply cannot be empty.");
-                      const latest = messages[0];
-                      if (!latest) return alert("No message to reply to.");
-                      // mock reply: prepend to messages
-                      const newMsg: Message = {
-                        id: `r-${Date.now()}`,
-                        from: latest.to,
-                        to: latest.from,
-                        property: latest.property,
-                        date: new Date().toISOString(),
-                        message: text.trim(),
-                        status: "read",
-                      };
-                      setMessages((m) => [newMsg, ...m]);
-                      alert("Reply sent (mock).");
-                    }}
-                  />
+                {/* Security Settings */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Security
+                  </h3>
+                  <div className="space-y-4">
+                    <button className="w-full md:w-auto px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      Change Admin Password
+                    </button>
+                    <button className="w-full md:w-auto px-6 py-3 border border-red-300 dark:border-red-600 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                      Clear All Data
+                    </button>
+                  </div>
+                </div>
+
+                {/* Save Changes */}
+                <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <button className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Cancel
+                  </button>
+                  <button className="px-6 py-3 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90">
+                    Save Changes
+                  </button>
                 </div>
               </div>
-            </>
-          )}
-        </main>
-      </div>
+            </div>
+          </div>
+        );
 
-      {/* ----- VIEW MODAL ----- */}
-      {showModal && selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-gray-800 rounded-2xl border border-gray-700 max-w-3xl w-full overflow-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between">
-                <h3 className="text-2xl font-bold text-[#00CFFF]">Details</h3>
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="md:hidden p-2 text-gray-600 dark:text-gray-400"
+              >
+                <FiMenu className="w-5 h-5" />
+              </button>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                Admin Dashboard
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                aria-label={
+                  darkMode ? "Switch to light mode" : "Switch to dark mode"
+                }
+              >
+                {darkMode ? (
+                  <FiSun className="w-5 h-5" />
+                ) : (
+                  <FiMoon className="w-5 h-5" />
+                )}
+              </button>
+
+              <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white relative">
+                <FiBell className="w-5 h-5" />
+                <span className="absolute -top-1 -right-1 bg-[#FF4FA1] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  3
+                </span>
+              </button>
+
+              <div className="relative">
                 <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-300"
+                  ref={profileButtonRef}
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2 hover:opacity-90 transition-opacity"
                 >
-                  Close
+                  <div className="w-8 h-8 rounded-full bg-[#00CFFF] flex items-center justify-center text-white font-semibold">
+                    S
+                  </div>
+                  <div className="hidden md:block text-left">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      Sule
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      System Administrator
+                    </div>
+                  </div>
+                  <svg
+                    className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </button>
-              </div>
 
-              <div className="mt-4">
-                {/* Booking */}
-                {selected && selected.propertyName && (
-                  <div>
-                    <div className="text-sm text-gray-400">Booking</div>
-                    <div className="mt-2 bg-gray-900 p-4 rounded">
-                      <div>
-                        <strong>Booking ID:</strong> {selected.id}
+                {profileOpen && (
+                  <div
+                    ref={profileDropdownRef}
+                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+                  >
+                    <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        Sule
                       </div>
-                      <div>
-                        <strong>Property:</strong> {selected.propertyName}
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        admin@rentsmart.com
                       </div>
-                      <div>
-                        <strong>Homeowner:</strong> {selected.homeowner}
-                      </div>
-                      <div>
-                        <strong>Guest:</strong> {selected.guestName} (
-                        {selected.guestEmail})
-                      </div>
-                      <div>
-                        <strong>Dates:</strong> {selected.startDate} •{" "}
-                        {selected.duration}
-                      </div>
-                      <div>
-                        <strong>Amount:</strong> Ghc {selected.total}
-                      </div>
-                      <div>
-                        <strong>Status:</strong> {selected.status}
-                      </div>
+                    </div>
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          router.push("/admin/profile");
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        Admin Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          setActiveSection("settings");
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        System Settings
+                      </button>
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          router.push("/admin/audit-log");
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        Audit Log
+                      </button>
+                      <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center justify-between px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        <span className="flex items-center gap-2">
+                          <FiLogOut className="w-4 h-4" />
+                          Log Out Admin
+                        </span>
+                      </button>
                     </div>
                   </div>
                 )}
-
-                {/* Property */}
-                {selected && selected.address && (
-                  <div className="mt-4">
-                    <div className="text-sm text-gray-400">Property</div>
-                    <div className="mt-2 bg-gray-900 p-4 rounded">
-                      <div className="flex gap-4">
-                        {selected.image && (
-                          <img
-                            src={selected.image}
-                            className="w-32 h-24 object-cover rounded"
-                            alt={selected.name}
-                          />
-                        )}
-                        <div className="flex-1">
-                          <div className="text-lg font-semibold">
-                            {selected.name}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            {selected.address.city}, {selected.address.state}
-                          </div>
-                          <div className="mt-2">Beds: {selected.beds}</div>
-                          <div>Price: Ghc {selected.price}</div>
-                          <div>
-                            Status: {selected.isActive ? "Active" : "Inactive"}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Homeowner / Guest / Message fallback */}
-                {selected && selected.email && (
-                  <div className="mt-4">
-                    <div className="text-sm text-gray-400">User</div>
-                    <div className="mt-2 bg-gray-900 p-4 rounded">
-                      <div>
-                        <strong>Name:</strong> {selected.name}
-                      </div>
-                      <div>
-                        <strong>Email:</strong> {selected.email}
-                      </div>
-                      {selected.phone && (
-                        <div>
-                          <strong>Phone:</strong> {selected.phone}
-                        </div>
-                      )}
-                      {selected.paymentInfo && (
-                        <div>
-                          <strong>Payment:</strong> {selected.paymentInfo}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {selected && selected.message && !selected.propertyName && (
-                  <div className="mt-4">
-                    <div className="text-sm text-gray-400">Message</div>
-                    <div className="mt-2 bg-gray-900 p-4 rounded">
-                      <div>
-                        <strong>From:</strong> {selected.from}
-                      </div>
-                      <div>
-                        <strong>To:</strong> {selected.to}
-                      </div>
-                      <div className="mt-2">{selected.message}</div>
-                      <div className="text-xs text-gray-400 mt-2">
-                        {selected.date}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Fallback raw */}
-                {!(
-                  (selected && selected.propertyName) ||
-                  (selected && selected.address) ||
-                  (selected && selected.email) ||
-                  (selected && selected.message)
-                ) && (
-                  <pre className="bg-gray-900 p-4 rounded text-sm text-gray-200">
-                    {JSON.stringify(selected, null, 2)}
-                  </pre>
-                )}
-              </div>
-
-              <div className="mt-4 flex justify-end gap-3">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded bg-gray-700"
-                >
-                  Close
-                </button>
               </div>
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
+      </header>
 
-/* -------------------------
-   Small UI helpers
-   ------------------------- */
-
-function SidebarBtn({
-  label,
-  icon,
-  active,
-  onClick,
-}: {
-  label: string;
-  icon?: React.ReactNode;
-  active?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 ${
-        active ? "bg-[#00CFFF] text-black" : "hover:bg-gray-700"
-      }`}
-    >
-      <span className="opacity-90">{icon}</span>
-      <span>{label}</span>
-    </button>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  color = "pink",
-}: {
-  label: string;
-  value: number | string;
-  color?: "pink" | "teal";
-}) {
-  const accent = color === "teal" ? "text-[#00CFFF]" : "text-[#FF4FA1]";
-  return (
-    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-      <div className="text-sm text-gray-400">{label}</div>
-      <div className={`mt-2 text-2xl font-bold ${accent}`}>{value}</div>
-    </div>
-  );
-}
-
-function TableToolbar({
-  placeholder,
-  value,
-  onChange,
-  onClear,
-}: {
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
-  onClear: () => void;
-}) {
-  return (
-    <div className="mb-4 flex items-center gap-3">
-      <div className="flex items-center bg-gray-800 rounded-lg border border-gray-700 px-3 py-2 w-full max-w-lg">
-        <Search className="text-gray-400 mr-2" />
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="bg-transparent outline-none text-sm text-gray-200 w-full"
-        />
-        {value && (
-          <button onClick={onClear} className="text-sm text-gray-400 ml-2">
-            Clear
-          </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Mobile Menu */}
+        {showMobileMenu && (
+          <div className="md:hidden mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveSection(item.id);
+                    setShowMobileMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-3 p-4 text-left transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
+                    activeSection === item.id
+                      ? "bg-gray-50 dark:bg-gray-700 text-[#00CFFF]"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         )}
-      </div>
-    </div>
-  );
-}
 
-function ReplyBox({ onSend }: { onSend: (text: string) => void }) {
-  const [text, setText] = useState("");
-  return (
-    <div>
-      <textarea
-        rows={3}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-white"
-        placeholder="Type reply (mock)"
-      />
-      <div className="flex justify-end gap-3 mt-3">
-        <button
-          onClick={() => setText("")}
-          className="px-4 py-2 rounded bg-gray-700"
-        >
-          Clear
-        </button>
-        <button
-          onClick={() => {
-            onSend(text);
-            setText("");
-          }}
-          className="px-4 py-2 rounded bg-[#00CFFF] text-black font-semibold"
-        >
-          Send Reply (mock)
-        </button>
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Desktop Menu */}
+          <div className="hidden md:block w-full md:w-64 flex-shrink-0">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden sticky top-6">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSection(item.id)}
+                  className={`w-full flex items-center gap-3 p-4 text-left transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${
+                    activeSection === item.id
+                      ? "bg-gray-50 dark:bg-gray-700 text-[#00CFFF]"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">{renderSection()}</div>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default AdminDashboard;
