@@ -25,8 +25,9 @@ export interface SignupData {
   phone: string;
   password: string;
   confirmPassword: string;
-  userType: "renter" | "homeowner" | "admin";
+  userType: "renter" | "homeowner" | "hostel" | "admin";
   agreeToTerms: boolean;
+  hostelName: string;
 }
 
 const SignupForm: React.FC<SignupFormProps> = ({
@@ -42,6 +43,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
     confirmPassword: "",
     userType: "renter",
     agreeToTerms: false,
+    hostelName: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -63,6 +65,19 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const userType: SignupData["userType"] = formData.userType;
+
+    if (userType === "hostel") {
+      if (!formData.hostelName.trim()) {
+        showToast({
+          title: "Hostel Name Required",
+          message: "Please enter your hostel name.",
+          type: "error",
+        });
+        return;
+      }
+    }
 
     if (formData.password !== formData.confirmPassword) {
       showToast({
@@ -93,24 +108,37 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       const uid = userCred.user.uid;
 
-      await setDoc(doc(db, "users", uid), {
+      const userData: any = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone,
-        role: formData.userType,
+        role: userType,
         createdAt: serverTimestamp(),
         isGoogleAccount: false,
-      });
+      };
 
-      localStorage.setItem("role", formData.userType);
+      if (userType === "hostel") {
+        userData.hostelName = formData.hostelName;
+      }
 
-      if (formData.userType === "renter") {
-        router.push("/");
-      } else if (formData.userType === "homeowner") {
-        router.push("/homeowner");
-      } else if (formData.userType === "admin") {
-        router.push("/admin");
+      await setDoc(doc(db, "users", uid), userData);
+
+      localStorage.setItem("role", userType);
+
+      switch (userType) {
+        case "renter":
+          router.push("/");
+          break;
+        case "homeowner":
+          router.push("/homeowner");
+          break;
+        case "hostel":
+          router.push("/student/page");
+          break;
+        case "admin":
+          router.push("/admin");
+          break;
       }
 
       showToast({
@@ -146,10 +174,19 @@ const SignupForm: React.FC<SignupFormProps> = ({
       return;
     }
 
+    if (formData.userType === "hostel" && !formData.hostelName.trim()) {
+      showToast({
+        title: "Hostel Name Required",
+        message: "Please enter your hostel name for Google sign-up.",
+        type: "error",
+      });
+      setGoogleLoading(false);
+      return;
+    }
+
     const provider = new GoogleAuthProvider();
 
     try {
-      // Add additional scopes
       provider.addScope("profile");
       provider.addScope("email");
 
@@ -159,16 +196,13 @@ const SignupForm: React.FC<SignupFormProps> = ({
       const email = user.email || "";
       const displayName = user.displayName || "";
 
-      // Split display name into first and last name
       const nameParts = displayName.split(" ");
       const firstName = nameParts[0] || "";
       const lastName = nameParts.slice(1).join(" ") || "";
 
-      // Check if user already exists
       const userSnap = await getDoc(doc(db, "users", uid));
 
       if (userSnap.exists()) {
-        // User already exists, just sign them in
         const userData = userSnap.data();
         localStorage.setItem("role", userData.role);
 
@@ -178,28 +212,34 @@ const SignupForm: React.FC<SignupFormProps> = ({
           type: "success",
         });
 
-        // Redirect based on existing role
         if (userData.role === "renter") {
           router.push("/");
         } else if (userData.role === "homeowner") {
           router.push("/homeowner");
+        } else if (userData.role === "hostel") {
+          router.push("/student/page");
         } else if (userData.role === "admin") {
           router.push("/admin");
         }
         return;
       }
 
-      // Create new user document with Google sign-up
-      await setDoc(doc(db, "users", uid), {
+      const userData: any = {
         firstName: firstName,
         lastName: lastName,
         email: email,
-        phone: "", // Google doesn't provide phone number
+        phone: "",
         role: formData.userType,
         createdAt: serverTimestamp(),
         photoURL: user.photoURL || "",
         isGoogleAccount: true,
-      });
+      };
+
+      if (formData.userType === "hostel") {
+        userData.hostelName = formData.hostelName;
+      }
+
+      await setDoc(doc(db, "users", uid), userData);
 
       localStorage.setItem("role", formData.userType);
 
@@ -209,11 +249,12 @@ const SignupForm: React.FC<SignupFormProps> = ({
         type: "success",
       });
 
-      // Redirect based on selected user type
       if (formData.userType === "renter") {
         router.push("/");
       } else if (formData.userType === "homeowner") {
         router.push("/homeowner");
+      } else if (formData.userType === "hostel") {
+        router.push("/student/page");
       } else if (formData.userType === "admin") {
         router.push("/admin");
       }
@@ -249,10 +290,13 @@ const SignupForm: React.FC<SignupFormProps> = ({
         return "Looking to rent properties for short or long term stays";
       case "homeowner":
         return "Want to list and manage your properties for rent";
+      case "hostel":
+        return "Manage hostel accommodations and student housing";
       default:
         return "";
     }
   };
+  const userType: SignupData["userType"] = formData.userType;
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -265,10 +309,8 @@ const SignupForm: React.FC<SignupFormProps> = ({
           </p>
         </div>
 
-        {/* Signup Card */}
         <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* User Type Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 I want to join as a...
@@ -281,6 +323,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
               >
                 <option value="renter">Renter / Tenant</option>
                 <option value="homeowner">Agent / Landlord</option>
+                <option value="hostel">Hostel Manager</option>
               </select>
               <p className="text-xs text-gray-400">
                 {getUserTypeDescription(formData.userType)}
@@ -291,82 +334,56 @@ const SignupForm: React.FC<SignupFormProps> = ({
               </p>
             </div>
 
-            {/* Quick Sign-up Option */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-600"></div>
+            {formData.userType === "hostel" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Hostel Name
+                </label>
+                <input
+                  type="text"
+                  name="hostelName"
+                  value={formData.hostelName}
+                  onChange={handleChange}
+                  required={formData.userType === "hostel"}
+                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                  placeholder="Enter your hostel name"
+                />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-gray-800 text-gray-400">
-                  Quick sign-up with
-                </span>
-              </div>
-            </div>
+            )}
 
-            {/* Google Sign-up Button */}
-            <button
-              type="button"
-              onClick={handleGoogleSignup}
-              disabled={googleLoading || isLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {googleLoading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-800 mr-2"></div>
-                  Creating Account...
+            {formData.userType !== "hostel" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required={userType !== "hostel"}
+                    className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                    placeholder="First name"
+                  />
                 </div>
-              ) : (
-                <>
-                  <FcGoogle className="w-5 h-5" />
-                  Sign up with Google
-                </>
-              )}
-            </button>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required={userType !== "hostel"}
+                    className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                    placeholder="Last name"
+                  />
+                </div>
+              </div>
+            )}
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-600"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-gray-800 text-gray-400">
-                  Or create account with email
-                </span>
-              </div>
-            </div>
-
-            {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
-                  placeholder="First name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
-                  placeholder="Last name"
-                />
-              </div>
-            </div>
-
-            {/* Contact Information */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Email Address
@@ -384,25 +401,23 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Phone Number
+                Contact Number(Optional)
               </label>
               <input
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                required
                 className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
                 placeholder="020XXXXXXX"
               />
-              <p className="mt-1 text-xs text-gray-400">
-                Required for email sign-up. Google accounts can add phone later
-                in profile.
-              </p>
+              {/* <p className="mt-1 text-xs text-gray-400">
+                Required for email sign-up. Google accounts can add contact
+                number later in profile.
+              </p> */}
             </div>
 
-            {/* Password Fields */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Password
@@ -452,7 +467,6 @@ const SignupForm: React.FC<SignupFormProps> = ({
               </div>
             </div>
 
-            {/* Terms Agreement */}
             <div className="flex items-start space-x-3">
               <input
                 type="checkbox"
@@ -481,10 +495,6 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 >
                   Privacy Policy
                 </Link>
-                <br />
-                <span className="text-xs text-gray-400">
-                  (Required for both email and Google sign-up)
-                </span>
               </label>
             </div>
 
@@ -500,7 +510,39 @@ const SignupForm: React.FC<SignupFormProps> = ({
                   Creating Account...
                 </div>
               ) : (
-                "Create Account with Email"
+                `Create ${formData.userType === "hostel" ? "Hostel" : ""} Account with Email`
+              )}
+            </button>
+
+            {/* Quick Sign-up Option */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-gray-800 text-gray-400">
+                  Quick sign-up with
+                </span>
+              </div>
+            </div>
+
+            {/* Google Sign-up Button */}
+            <button
+              type="button"
+              onClick={handleGoogleSignup}
+              disabled={googleLoading || isLoading}
+              className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {googleLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-800 mr-2"></div>
+                  Creating Account...
+                </div>
+              ) : (
+                <>
+                  <FcGoogle className="w-5 h-5" />
+                  Sign up with Google
+                </>
               )}
             </button>
 

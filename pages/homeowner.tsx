@@ -12,8 +12,6 @@ import {
   FiSettings,
   FiTrendingUp,
   FiUsers,
-  FiClock,
-  FiStar,
   FiEye,
   FiEdit,
   FiTrash2,
@@ -29,12 +27,14 @@ import {
   FiMoon,
   FiLogOut,
 } from "react-icons/fi";
+import { useToast } from "../components/ToastProvider";
 
 const HomeownerDashboard = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { showToast } = useToast();
   const router = useRouter();
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
@@ -95,10 +95,13 @@ const HomeownerDashboard = () => {
     localStorage.removeItem("adminToken");
 
     setProfileOpen(false);
+    showToast({
+      title: "Success",
+      message: "You have been logged out successfully!",
+      type: "success",
+    });
 
     router.push("/");
-
-    alert("You have been logged out successfully!");
   };
 
   const dashboardStats = [
@@ -136,7 +139,6 @@ const HomeownerDashboard = () => {
     },
   ];
 
-  // Mock data for properties
   const properties = [
     {
       id: 1,
@@ -172,7 +174,6 @@ const HomeownerDashboard = () => {
     },
   ];
 
-  // Mock data for bookings
   const bookings = [
     {
       id: 1,
@@ -270,7 +271,6 @@ const HomeownerDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Recent Bookings */}
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">

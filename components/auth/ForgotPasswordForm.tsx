@@ -33,7 +33,7 @@ const ForgotPasswordForm: React.FC = () => {
         type: "success",
       });
 
-      setEmail(""); // optional: clear the field
+      setEmail("");
     } catch (error: any) {
       showToast({
         title: "Reset Failed",

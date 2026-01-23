@@ -57,10 +57,6 @@ export interface MessageMock {
   status?: "read" | "unread";
 }
 
-/* ---------------------
-   PROPERTIES
-   --------------------- */
-
 export const PROPERTIES: PropertyMock[] = [
   {
     id: 1,
