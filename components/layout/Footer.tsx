@@ -173,7 +173,7 @@ const Footer: React.FC = () => {
               </span>
               <span className="text-[#FF4FA1] animate-pulse">❤️</span>
               <span className="text-gray-500 dark:text-gray-400 text-sm">
-                in Ghana
+                by Simli Technologies
               </span>
             </div>
           </div>

@@ -21,7 +21,7 @@ interface LoginFormProps {
 export interface LoginData {
   email: string;
   password: string;
-  userType: "renter" | "homeowner" | "admin";
+  userType: "renter" | "homeowner" | "hostel" | "admin";
 }
 
 export const saveUserToFirestore = async (
@@ -44,8 +44,9 @@ export const saveUserToFirestore = async (
       p.providerId.includes("google"),
     );
     const photoURL = user.photoURL || "";
+    const hostelName = extraData?.hostelName || "";
 
-    await setDoc(doc(db, "users", uid), {
+    const userData: any = {
       uid,
       email: user.email,
       firstName,
@@ -55,7 +56,14 @@ export const saveUserToFirestore = async (
       isGoogleAccount,
       photoURL,
       createdAt: serverTimestamp(),
-    });
+    };
+
+    // Add hostel-specific fields if needed
+    if (role === "hostel") {
+      userData.hostelName = hostelName;
+    }
+
+    await setDoc(doc(db, "users", uid), userData);
   }
 
   return getDoc(doc(db, "users", uid));
@@ -114,6 +122,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
         router.push("/");
       } else if (role === "homeowner") {
         router.push("/homeowner");
+      } else if (role === "hostel") {
+        router.push("/student/page");
       } else if (role === "admin") {
         router.push("/admin");
       }
@@ -175,12 +185,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
         });
       }
 
-      // Redirect based on role
       const role = localStorage.getItem("role");
       if (role === "renter") {
         router.push("/");
       } else if (role === "homeowner") {
         router.push("/homeowner");
+      } else if (role === "hostel") {
+        router.push("/student/page");
       } else if (role === "admin") {
         router.push("/admin");
       }
@@ -210,16 +221,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
           <p className="text-gray-400">Sign in to your account to continue</p>
         </div>
 
-        {/* Login Card */}
         <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* User Type Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 I am a...
@@ -232,13 +240,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
               >
                 <option value="renter">Renter / Tenant</option>
                 <option value="homeowner">Agent / Landlord</option>
+                <option value="hostel">Hostel Manager</option>
               </select>
               <p className="mt-1 text-xs text-gray-400">
                 Note: Google sign-in will use this selection for new accounts
               </p>
             </div>
 
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Email Address
@@ -254,7 +262,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
               />
             </div>
 
-            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Password
@@ -279,7 +286,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center">
                 <input
@@ -297,7 +303,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
               </Link>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading || googleLoading}
@@ -313,7 +318,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
               )}
             </button>
 
-            {/* Divider - Or continue with */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-600"></div>
@@ -325,7 +329,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
               </div>
             </div>
 
-            {/* Google Login Button */}
             <button
               type="button"
               onClick={handleGoogleLogin}

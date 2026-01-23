@@ -1,7 +1,6 @@
 export default function TermsOfService() {
   return (
     <div className="space-y-16">
-      {/* Hero Section */}
       <section className="relative py-20 text-white">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -25,11 +24,9 @@ export default function TermsOfService() {
         </div>
       </section>
 
-      {/* Terms Content */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
           <div className="prose prose-lg max-w-none prose-invert">
-            {/* Agreement */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">
                 1. Agreement to Terms
@@ -42,7 +39,6 @@ export default function TermsOfService() {
               </p>
             </section>
 
-            {/* User Accounts */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">
                 2. User Accounts
@@ -64,7 +60,6 @@ export default function TermsOfService() {
               </ul>
             </section>
 
-            {/* User Responsibilities */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">
                 3. User Responsibilities
@@ -93,7 +88,6 @@ export default function TermsOfService() {
               </ul>
             </section>
 
-            {/* Booking and Payments */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">
                 4. Booking and Payments
@@ -112,7 +106,6 @@ export default function TermsOfService() {
               </ul>
             </section>
 
-            {/* Cancellation and Refunds */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">
                 5. Cancellation and Refunds
@@ -138,7 +131,6 @@ export default function TermsOfService() {
               </p>
             </section>
 
-            {/* Property Listings */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">
                 6. Property Listings
@@ -155,7 +147,6 @@ export default function TermsOfService() {
               </ul>
             </section>
 
-            {/* Prohibited Activities */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">
                 7. Prohibited Activities
@@ -176,7 +167,6 @@ export default function TermsOfService() {
               </ul>
             </section>
 
-            {/* Intellectual Property */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">
                 8. Intellectual Property
@@ -188,7 +178,6 @@ export default function TermsOfService() {
               </p>
             </section>
 
-            {/* Limitation of Liability */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">
                 9. Limitation of Liability

@@ -24,8 +24,15 @@ export default function AuthPage() {
       localStorage.setItem("role", role);
 
       if (role === "renter") router.push("/");
-      if (role === "homeowner") router.push("/homeowner");
-      if (role === "admin") router.push("/admin");
+      else if (role === "homeowner") router.push("/homeowner");
+      else if (role === "hostel") router.push("/hostel/page");
+      else if (role === "admin") router.push("/admin");
+
+      showToast({
+        title: "Login Successful",
+        message: `Welcome back!`,
+        type: "success",
+      });
     } catch (err: any) {
       showToast({
         title: "Login failed",
@@ -35,7 +42,6 @@ export default function AuthPage() {
     }
   };
 
-  // 🆕 SIGNUP
   const handleSignup = async (data: SignupData) => {
     try {
       if (data.userType === "admin") {
@@ -47,11 +53,17 @@ export default function AuthPage() {
       localStorage.setItem("role", data.userType);
 
       if (data.userType === "renter") router.push("/");
-      if (data.userType === "homeowner") router.push("/homeowner");
+      else if (data.userType === "homeowner") router.push("/homeowner");
+      else if (data.userType === "hostel") router.push("/hostel/page");
+
+      const welcomeName =
+        data.userType === "hostel"
+          ? `Welcome ${data.hostelName}!`
+          : `Welcome ${data.firstName}!`;
 
       showToast({
         title: "Signup Successful",
-        message: `Welcome ${data.firstName}!`,
+        message: welcomeName,
         type: "success",
       });
     } catch (err: any) {

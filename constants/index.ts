@@ -33,6 +33,9 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     images: [img1.src, img2.src, img3.src, img4.src],
     discount: "",
     host: "Maltiti",
+    urgent: true,
+    featured: true,
+    spotlight: true,
     description:
       "Experience the ultimate beachfront luxury at Villa Ocean Breeze. This stunning villa offers breathtaking ocean views, a private pool, and modern amenities to ensure a comfortable and memorable stay.",
     amenities: ["Free WiFi", "Pool", "Air Conditioning", "Kitchen"],

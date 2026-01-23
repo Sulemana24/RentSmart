@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword,
   User,
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 
 export const signupUser = async (
   email: string,
@@ -19,14 +19,25 @@ export const signupUser = async (
     );
     const uid = userCred.user.uid;
 
-    await setDoc(doc(db, "users", uid), {
-      firstName: data.firstName,
-      lastName: data.lastName,
+    const userData: any = {
       email: data.email,
       phone: data.phone,
       role: data.userType,
-      createdAt: new Date(),
-    });
+      createdAt: serverTimestamp(),
+      isGoogleAccount: false,
+    };
+
+    if (data.userType === "hostel") {
+      userData.hostelName = data.hostelName;
+
+      userData.firstName = data.hostelName;
+      userData.lastName = "";
+    } else {
+      userData.firstName = data.firstName;
+      userData.lastName = data.lastName;
+    }
+
+    await setDoc(doc(db, "users", uid), userData);
 
     return userCred.user;
   } catch (error: any) {

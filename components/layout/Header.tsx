@@ -17,6 +17,7 @@ import {
   FiCalendar,
 } from "react-icons/fi";
 import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
+import { TbBuildingCommunity } from "react-icons/tb";
 import { useToast } from "../ToastProvider";
 
 const Header: React.FC = () => {
@@ -27,6 +28,7 @@ const Header: React.FC = () => {
     name?: string;
     role?: string;
     email?: string;
+    hostelName?: string;
   } | null>(null);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -36,6 +38,7 @@ const Header: React.FC = () => {
 
   const navItems = [
     { name: "Home", href: "/", icon: <FiHome /> },
+    { name: "Hostels", href: "/hostels", icon: <FiHome /> },
     { name: "About", href: "/about", icon: <FiInfo /> },
     { name: "Contact", href: "/contact", icon: <FiMail /> },
     { name: "Booking Status", href: "/booking-status", icon: <FiCalendar /> },
@@ -75,10 +78,21 @@ const Header: React.FC = () => {
         const snap = await getDoc(doc(db, "users", user.uid));
         if (snap.exists()) {
           const data = snap.data();
+          // Determine display name based on user type
+          let displayName = "User";
+          if (data.role === "hostel" && data.hostelName) {
+            displayName = data.hostelName;
+          } else if (data.firstName && data.lastName) {
+            displayName = `${data.firstName} ${data.lastName}`;
+          } else if (data.name) {
+            displayName = data.name;
+          }
+
           setUserData({
-            name: data.firstName || data.name || "User",
+            name: displayName,
             role: data.role,
             email: data.email,
+            hostelName: data.hostelName,
           });
         }
       } catch {
@@ -123,6 +137,52 @@ const Header: React.FC = () => {
 
   const handleListProperty = () => router.push("/auth");
   const handleSignUp = () => router.push("/auth");
+
+  const getDashboardPath = () => {
+    if (!userData?.role) return "/dashboard";
+
+    switch (userData.role) {
+      case "homeowner":
+        return "/homeowner";
+      case "hostel":
+        return "/hostel";
+      case "admin":
+        return "/admin";
+      default:
+        return "/dashboard";
+    }
+  };
+
+  const getRoleIcon = () => {
+    if (!userData?.role)
+      return <HiOutlineBuildingOffice2 className="w-3 h-3" />;
+
+    switch (userData.role) {
+      case "hostel":
+        return <TbBuildingCommunity className="w-3 h-3" />;
+      case "homeowner":
+        return <HiOutlineBuildingOffice2 className="w-3 h-3" />;
+      default:
+        return <HiOutlineBuildingOffice2 className="w-3 h-3" />;
+    }
+  };
+
+  const getRoleDisplayName = () => {
+    if (!userData?.role) return "User";
+
+    switch (userData.role) {
+      case "hostel":
+        return "Hostel Manager";
+      case "homeowner":
+        return "Property Owner";
+      case "admin":
+        return "Administrator";
+      case "renter":
+        return "Tenant";
+      default:
+        return userData.role;
+    }
+  };
 
   return (
     <header className="fixed z-50 w-full bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-800 transition-colors duration-200 py-2">
@@ -213,19 +273,15 @@ const Header: React.FC = () => {
                       </p>
                       <div className="mt-2">
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-[#FF4FA1]/10 to-[#00CFFF]/10 text-[#FF4FA1] dark:text-[#00CFFF]">
-                          <HiOutlineBuildingOffice2 className="w-3 h-3" />
-                          {userData.role}
+                          {getRoleIcon()}
+                          {getRoleDisplayName()}
                         </span>
                       </div>
                     </div>
                     <div className="py-2">
                       <button
                         onClick={() => {
-                          router.push(
-                            userData.role === "homeowner"
-                              ? "/homeowner"
-                              : "/dashboard",
-                          );
+                          router.push(getDashboardPath());
                           setProfileOpen(false);
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -343,19 +399,15 @@ const Header: React.FC = () => {
                   </p>
                   <div className="mt-2">
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-[#FF4FA1]/10 to-[#00CFFF]/10 text-[#FF4FA1] dark:text-[#00CFFF]">
-                      <HiOutlineBuildingOffice2 className="w-3 h-3" />
-                      {userData.role}
+                      {getRoleIcon()}
+                      {getRoleDisplayName()}
                     </span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => {
-                    router.push(
-                      userData.role === "homeowner"
-                        ? "/homeowner"
-                        : "/dashboard",
-                    );
+                    router.push(getDashboardPath());
                     setMenuOpen(false);
                   }}
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#00CFFF] to-cyan-400 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-lg transition-all duration-200"

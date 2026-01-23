@@ -181,6 +181,42 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Homepage Spotlight Carousel */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+          Homepage Spotlight
+        </h2>
+        <div className="flex overflow-x-auto gap-6 scrollbar-hide py-2">
+          {properties
+            .filter((p) => p.spotlight)
+            .map((property) => (
+              <div key={property.id} className="min-w-[300px] flex-shrink-0">
+                <PropertyCard property={property} />
+              </div>
+            ))}
+        </div>
+      </section>
+
+      {/* Featured Listings */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+            Featured Listings
+          </h2>
+          <span className="text-sm font-medium px-4 py-2 bg-gradient-to-r from-[#FF4FA1]/10 to-pink-500/10 dark:from-[#FF4FA1]/20 dark:to-pink-500/20 text-[#FF4FA1] rounded-full">
+            Premium
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {properties
+            .filter((p) => p.featured)
+            .slice(0, 6)
+            .map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+        </div>
+      </section>
+
       <section
         id="search-section"
         className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
