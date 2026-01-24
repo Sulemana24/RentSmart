@@ -46,7 +46,6 @@ export interface PropertyProps {
   description: string;
   amenities?: string[];
   reviews?: Review[];
-  urgent?: boolean;
   featured?: boolean;
   spotlight?: boolean;
 }

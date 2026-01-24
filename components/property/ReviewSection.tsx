@@ -9,13 +9,11 @@ interface ReviewSectionProps {
 }
 
 const ReviewSection = ({ reviews }: ReviewSectionProps) => {
-  // Calculate average rating
   const averageRating =
     reviews.length > 0
       ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
       : 0;
 
-  // Render star rating
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center">
@@ -57,7 +55,6 @@ const ReviewSection = ({ reviews }: ReviewSectionProps) => {
         Reviews
       </h2>
 
-      {/* Reviews List */}
       <div className="space-y-6">
         {reviews.map((review, index) => (
           <div
@@ -87,7 +84,6 @@ const ReviewSection = ({ reviews }: ReviewSectionProps) => {
               "{review.comment}"
             </p>
 
-            {/* Review Actions */}
             <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
               <button className="text-sm text-gray-500 hover:text-[#FF4FA1] transition-colors">
                 👍 Helpful
@@ -97,7 +93,6 @@ const ReviewSection = ({ reviews }: ReviewSectionProps) => {
         ))}
       </div>
 
-      {/* Load More Reviews (if applicable) */}
       {reviews.length > 3 && (
         <div className="text-center mt-8">
           <button className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-semibold transition-all duration-300">

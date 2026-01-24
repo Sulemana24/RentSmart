@@ -21,7 +21,7 @@ export default function BookingSection({
         >
           Book Now
         </button>
-        <button className="w-full mt-3 border border-gray-300 text-white py-2 rounded-lg hover:bg-gray-100 hover:text-black transition">
+        <button className="w-full mt-3 border border-gray-300 text-black dark:text-white py-2 rounded-lg hover:bg-gray-100 hover:text-black dark:hover:text-black transition">
           Contact Host
         </button>
         <p>

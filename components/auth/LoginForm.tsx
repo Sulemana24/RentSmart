@@ -116,12 +116,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
       const { role } = userSnap.data();
 
-      localStorage.setItem("role", role);
-
       if (role === "renter") {
         router.push("/");
       } else if (role === "homeowner") {
-        router.push("/homeowner");
+        router.push("/homeowner/page");
       } else if (role === "hostel") {
         router.push("/student/page");
       } else if (role === "admin") {
@@ -149,7 +147,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
-
     const provider = new GoogleAuthProvider();
 
     try {
@@ -159,24 +156,22 @@ const LoginForm: React.FC<LoginFormProps> = ({
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       const uid = user.uid;
-      const email = user.email || "";
 
       const userSnap = await getDoc(doc(db, "users", uid));
 
+      let role: string;
+
       if (!userSnap.exists()) {
-        const defaultRole = formData.userType;
         const userDoc = await saveUserToFirestore(user, formData.userType);
-        const userData = userDoc.data()!;
-        localStorage.setItem("role", userData.role);
+        role = userDoc.data()!.role;
 
         showToast({
           title: "Account Created",
-          message: "Your account has been created successfuly!",
+          message: "Your account has been created successfully!",
           type: "success",
         });
       } else {
-        const userData = userSnap.data();
-        localStorage.setItem("role", userData.role);
+        role = userSnap.data().role;
 
         showToast({
           title: "Login Successful",
@@ -185,16 +180,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
         });
       }
 
-      const role = localStorage.getItem("role");
-      if (role === "renter") {
-        router.push("/");
-      } else if (role === "homeowner") {
-        router.push("/homeowner");
-      } else if (role === "hostel") {
-        router.push("/student/page");
-      } else if (role === "admin") {
-        router.push("/admin");
-      }
+      if (role === "renter") router.replace("/");
+      else if (role === "homeowner") router.replace("/homeowner/page");
+      else if (role === "hostel") router.replace("/student/page");
+      else if (role === "admin") router.replace("/admin");
     } catch (error: any) {
       console.error("Google login error:", error);
 

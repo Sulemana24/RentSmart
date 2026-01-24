@@ -73,7 +73,7 @@ const HostelsPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-[#00CFFF] to-[#FF4FA1] text-white py-16">
+      <div className="bg-[#FF4FA1] dark:bg-[#00CFFF]/10 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
@@ -209,7 +209,7 @@ const HostelsPage = () => {
         )}
 
         {/* Call to Action */}
-        <div className="mt-12 bg-gradient-to-r from-[#00CFFF]/10 to-[#FF4FA1]/10 rounded-2xl p-8 text-center">
+        <div className="mt-12 bg-[#00CFFF]/10 rounded-2xl p-8 text-center">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Are you a Hostel Manager?
           </h3>

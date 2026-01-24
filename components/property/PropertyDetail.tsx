@@ -10,11 +10,9 @@ export default function PropertyDetail({ property }: { property: any }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showBookingForm, setShowBookingForm] = useState(false);
 
-  // Use the actual images array from property data - fallback to single image array
   const propertyImages = property.images || [property.image];
   const hasMultipleImages = propertyImages.length > 1;
 
-  // Helper functions to format the data from property
   const getDurationText = () => {
     if (
       !property.acceptableDurations ||
@@ -49,13 +47,13 @@ export default function PropertyDetail({ property }: { property: any }) {
 
   const nextImage = () => {
     setCurrentImageIndex((prev) =>
-      prev === propertyImages.length - 1 ? 0 : prev + 1
+      prev === propertyImages.length - 1 ? 0 : prev + 1,
     );
   };
 
   const prevImage = () => {
     setCurrentImageIndex((prev) =>
-      prev === 0 ? propertyImages.length - 1 : prev - 1
+      prev === 0 ? propertyImages.length - 1 : prev - 1,
     );
   };
 
@@ -63,7 +61,6 @@ export default function PropertyDetail({ property }: { property: any }) {
     setCurrentImageIndex(index);
   };
 
-  // Handle Book Now functionality - opens the booking form
   const handleBookNow = () => {
     setShowBookingForm(true);
   };
@@ -78,7 +75,7 @@ export default function PropertyDetail({ property }: { property: any }) {
     };
 
     alert(
-      `Contact Information:\n\nHost: ${contactInfo.hostName}\nProperty: ${contactInfo.propertyName}\nPhone: ${contactInfo.phone}\nEmail: ${contactInfo.email}\n\nWe'll connect you with the host shortly!`
+      `Contact Information:\n\nHost: ${contactInfo.hostName}\nProperty: ${contactInfo.propertyName}\nPhone: ${contactInfo.phone}\nEmail: ${contactInfo.email}\n\nWe'll connect you with the host shortly!`,
     );
   };
 
@@ -90,7 +87,7 @@ export default function PropertyDetail({ property }: { property: any }) {
 
     // Show success message
     alert(
-      `Booking confirmed for ${property.name}! We'll send a confirmation email shortly.`
+      `Booking confirmed for ${property.name}! We'll send a confirmation email shortly.`,
     );
 
     // Close the form
@@ -391,7 +388,6 @@ export default function PropertyDetail({ property }: { property: any }) {
                   </span>
                 </div>
 
-                {/* Property Details in Modal - Fetching from property data */}
                 <div className="mt-3 space-y-2 text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
                   <div className="flex justify-between">
                     <span className="font-semibold">Tenancy:</span>

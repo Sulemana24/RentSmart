@@ -14,7 +14,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const hideLayout =
     router.pathname.startsWith("/admin") ||
     router.pathname.startsWith("/homeowner") ||
-    router.pathname.startsWith("/hostel");
+    router.pathname.startsWith("/student");
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
       {!hideLayout && <Header />}

@@ -78,11 +78,9 @@ const Header: React.FC = () => {
         const snap = await getDoc(doc(db, "users", user.uid));
         if (snap.exists()) {
           const data = snap.data();
-          // Determine display name based on user type
+
           let displayName = "User";
-          if (data.role === "hostel" && data.hostelName) {
-            displayName = data.hostelName;
-          } else if (data.firstName && data.lastName) {
+          if (data.firstName && data.lastName) {
             displayName = `${data.firstName} ${data.lastName}`;
           } else if (data.name) {
             displayName = data.name;
@@ -92,7 +90,6 @@ const Header: React.FC = () => {
             name: displayName,
             role: data.role,
             email: data.email,
-            hostelName: data.hostelName,
           });
         }
       } catch {
@@ -129,7 +126,7 @@ const Header: React.FC = () => {
 
   const handleLogout = async () => {
     await signOut(auth);
-    localStorage.removeItem("role");
+
     setUserData(null);
     setProfileOpen(false);
     router.push("/");

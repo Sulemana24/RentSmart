@@ -2,7 +2,6 @@ import Link from "next/link";
 import { PropertyProps } from "@/interfaces";
 import { AiFillStar } from "react-icons/ai";
 import { FaLocationDot } from "react-icons/fa6";
-import { HiFire } from "react-icons/hi";
 
 interface PropertyCardProps {
   property: PropertyProps;
@@ -12,7 +11,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   return (
     <Link href={`/property/${property.id}`} passHref>
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 dark:border-gray-800 relative">
-        {/* Image Section */}
         <div className="relative w-full h-56 overflow-hidden">
           <img
             src={property.image}
@@ -23,13 +21,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           {property.discount && (
             <span className="absolute top-3 left-3 bg-pink-600 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md">
               -{property.discount}%
-            </span>
-          )}
-
-          {property.urgent && (
-            <span className="absolute top-3 left-3 ml-20 bg-red-600 text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
-              <HiFire className="w-4 h-4" />
-              Urgent
             </span>
           )}
 
