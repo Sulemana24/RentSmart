@@ -124,14 +124,12 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       await setDoc(doc(db, "users", uid), userData);
 
-      localStorage.setItem("role", userType);
-
       switch (userType) {
         case "renter":
           router.push("/");
           break;
         case "homeowner":
-          router.push("/homeowner");
+          router.push("/homeowner/page");
           break;
         case "hostel":
           router.push("/student/page");
@@ -204,7 +202,6 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        localStorage.setItem("role", userData.role);
 
         showToast({
           title: "Welcome Back!",
@@ -212,15 +209,14 @@ const SignupForm: React.FC<SignupFormProps> = ({
           type: "success",
         });
 
-        if (userData.role === "renter") {
-          router.push("/");
-        } else if (userData.role === "homeowner") {
-          router.push("/homeowner");
-        } else if (userData.role === "hostel") {
-          router.push("/student/page");
-        } else if (userData.role === "admin") {
-          router.push("/admin");
-        }
+        const freshSnap = await getDoc(doc(db, "users", uid));
+        const role = freshSnap.data()!.role;
+
+        if (role === "renter") router.replace("/");
+        else if (role === "homeowner") router.replace("/homeowner/page");
+        else if (role === "hostel") router.replace("/student/page");
+        else if (role === "admin") router.replace("/admin");
+
         return;
       }
 
@@ -241,8 +237,6 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
       await setDoc(doc(db, "users", uid), userData);
 
-      localStorage.setItem("role", formData.userType);
-
       showToast({
         title: "Account Created!",
         message: "Your account has been created with Google.",
@@ -252,7 +246,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
       if (formData.userType === "renter") {
         router.push("/");
       } else if (formData.userType === "homeowner") {
-        router.push("/homeowner");
+        router.push("/homeowner/page");
       } else if (formData.userType === "hostel") {
         router.push("/student/page");
       } else if (formData.userType === "admin") {

@@ -1,26 +1,27 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { FiChevronDown } from "react-icons/fi";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { FiChevronDown } from "react-icons/fi";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import Dashboard from "./components/Dashboard";
-import Rooms from "./components/Rooms";
-import AddRoom from "./components/AddRoom";
-import Students from "./components/Students";
+import Properties from "./components/Properties";
+import AddProperty from "./components/AddProperty";
 import Bookings from "./components/Bookings";
 import Payments from "./components/Payments";
 import Messages from "./components/Messages";
+import Support from "./components/Support";
 import Settings from "./components/Settings";
 import { useToast } from "../../components/ToastProvider";
 
-const HostelPage = () => {
+const HomeownerPage = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -29,11 +30,10 @@ const HostelPage = () => {
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)",
     ).matches;
-
     const initialDarkMode =
       savedTheme === "dark" || (!savedTheme && prefersDark);
-    setDarkMode(initialDarkMode);
 
+    setDarkMode(initialDarkMode);
     if (initialDarkMode) {
       document.documentElement.classList.add("dark");
     }
@@ -65,6 +65,7 @@ const HostelPage = () => {
       message: "You have been logged out successfully!",
       type: "success",
     });
+
     router.replace("/");
   };
 
@@ -72,12 +73,10 @@ const HostelPage = () => {
     switch (activeSection) {
       case "dashboard":
         return <Dashboard />;
-      case "rooms":
-        return <Rooms />;
-      case "add-room":
-        return <AddRoom />;
-      case "students":
-        return <Students />;
+      case "properties":
+        return <Properties />;
+      case "add-property":
+        return <AddProperty />;
       case "bookings":
         return <Bookings />;
       case "payments":
@@ -85,8 +84,9 @@ const HostelPage = () => {
       case "messages":
         return <Messages />;
       case "support":
+        return <Support />;
       case "settings":
-        return <Settings section={activeSection} />;
+        return <Settings />;
       default:
         return <Dashboard />;
     }
@@ -94,9 +94,8 @@ const HostelPage = () => {
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "Home" },
-    { id: "rooms", label: "Rooms", icon: "List" },
-    { id: "add-room", label: "Add Room", icon: "Plus" },
-    { id: "students", label: "Students", icon: "Users" },
+    { id: "properties", label: "Properties", icon: "List" },
+    { id: "add-property", label: "Add Property", icon: "Plus" },
     { id: "bookings", label: "Bookings", icon: "Calendar" },
     { id: "payments", label: "Payments", icon: "DollarSign" },
     { id: "messages", label: "Messages", icon: "MessageSquare" },
@@ -163,4 +162,4 @@ const HostelPage = () => {
   );
 };
 
-export default HostelPage;
+export default HomeownerPage;

@@ -30,7 +30,6 @@ const OrderSummary: React.FC<{ bookingDetails: any }> = ({
         Price Breakdown
       </h3>
 
-      {/* Property Price with Duration Calculation */}
       <div className="flex justify-between items-center py-2">
         <div>
           <span className="text-gray-600">Property Price</span>
