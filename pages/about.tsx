@@ -38,10 +38,8 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <section className="relative py-20 text-white">
-        {/* Background Image with Overlay */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -61,14 +59,14 @@ export default function AboutPage() {
       </section>
 
       {/* Mission Section */}
-      <section className="py-16 bg-gray-900">
+      <section className="py-16 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white mb-6">
                 Our Mission
               </h2>
-              <p className="text-lg text-gray-300 mb-6">
+              <p className="text-lg text-gray-800 dark:text-gray-300 mb-6">
                 We believe everyone deserves to find their perfect home without
                 the hassle. Our platform connects property owners with potential
                 tenants in a seamless, transparent, and efficient way.
@@ -77,17 +75,17 @@ export default function AboutPage() {
               {/* Expanded Mission Content */}
               {showFullMission && (
                 <div className="space-y-4 mb-6">
-                  <p className="text-lg text-gray-300">
+                  <p className="text-lg text-gray-800 dark:text-gray-300">
                     Founded with the vision to simplify rental processes, we've
                     helped thousands of people find their dream homes and
                     property owners to maximize their returns.
                   </p>
-                  <p className="text-lg text-gray-300">
+                  <p className="text-lg text-gray-800 dark:text-gray-300">
                     Our team of real estate experts and technology professionals
                     work tirelessly to ensure every property listing meets our
                     high standards for quality and accuracy.
                   </p>
-                  <p className="text-lg text-gray-300">
+                  <p className="text-lg text-gray-800 dark:text-gray-300">
                     We're committed to creating a rental experience that's not
                     just easy, but enjoyable for everyone involved.
                   </p>
@@ -108,7 +106,7 @@ export default function AboutPage() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border dark:border-gray-700">
               <img
                 src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                 alt="Our team"
@@ -120,7 +118,7 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gray-800 border-t border-gray-700">
+      <section className="py-16 bg-white dark:bg-gray-800 border-t dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {stats.map((stat, index) => (
@@ -128,7 +126,9 @@ export default function AboutPage() {
                 <div className="text-3xl md:text-4xl font-bold text-[#00CFFF] mb-2">
                   {stat.number}
                 </div>
-                <div className="text-gray-300 font-medium">{stat.label}</div>
+                <div className="text-gray-700 dark:text-gray-300 font-medium">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
@@ -136,13 +136,13 @@ export default function AboutPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-gray-900">
+      <section className="py-16 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white mb-4">
               Why Choose Us?
             </h2>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-700 dark:text-gray-400 max-w-2xl mx-auto">
               We provide the best rental experience with these key features
             </p>
           </div>
@@ -150,13 +150,13 @@ export default function AboutPage() {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="bg-gray-800 rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 border border-gray-700"
+                className="dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 border dark:border-gray-700"
               >
                 <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold text-white mb-3">
+                <h3 className="text-xl font-semibold text-black dark:text-white mb-3">
                   {feature.title}
                 </h3>
-                <p className="text-gray-300 text-sm leading-relaxed">
+                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -165,13 +165,12 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-gray-800 border-t border-gray-700">
+      <section className="py-16 bg-white dark:bg-gray-800 border-t dark:border-gray-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white mb-4">
             Ready to Find Your Perfect Home?
           </h2>
-          <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
             Join thousands of satisfied customers who found their dream rental
             through our platform.
           </p>
@@ -182,7 +181,7 @@ export default function AboutPage() {
               </button>
             </Link>
             <Link href="/contact">
-              <button className="border border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200">
+              <button className="border border-gray-500 dark:text-gray-300 px-8 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200">
                 Contact Our Team
               </button>
             </Link>

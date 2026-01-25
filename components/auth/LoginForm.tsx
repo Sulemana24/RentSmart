@@ -208,36 +208,40 @@ const LoginForm: React.FC<LoginFormProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-          <p className="text-gray-400">Sign in to your account to continue</p>
+          <h2 className="text-3xl font-bold text-black dark:text-white mb-2 mt-4">
+            Welcome Back
+          </h2>
+          <p className="text-gray-900 dark:text-gray-400">
+            Sign in to your account to continue
+          </p>
         </div>
 
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border dark:border-gray-700">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                 I am a...
               </label>
               <select
                 name="userType"
                 value={formData.userType}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white"
+                className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white"
               >
                 <option value="renter">Renter / Tenant</option>
                 <option value="homeowner">Agent / Landlord</option>
                 <option value="hostel">Hostel Manager</option>
               </select>
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-black dark:text-gray-400">
                 Note: Google sign-in will use this selection for new accounts
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <input
@@ -246,13 +250,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400"
                 placeholder="Enter your email"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                 Password
               </label>
               <div className="relative">
@@ -262,7 +266,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400 pr-12"
+                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400 pr-12"
                   placeholder="Enter your password"
                 />
                 <button
@@ -281,12 +285,14 @@ const LoginForm: React.FC<LoginFormProps> = ({
                   type="checkbox"
                   className="w-4 h-4 text-[#00CFFF] bg-gray-700 border-gray-600 rounded focus:ring-[#00CFFF] focus:ring-2"
                 />
-                <span className="ml-2 text-sm text-gray-300">Remember me</span>
+                <span className="ml-2 text-sm text-gray-800 dark:text-gray-300">
+                  Remember me
+                </span>
               </label>
 
               <Link
                 href="/forgot-password"
-                className="text-sm text-[#00CFFF] hover:text-[#FF4FA1] transition-colors"
+                className="text-sm text-[#FF4FA1] hover:text-[#00CFFF] dark:text-[#00CFFF] dark:hover:text-[#FF4FA1] transition-colors"
               >
                 Forgot password?
               </Link>
@@ -312,7 +318,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 <div className="w-full border-t border-gray-600"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-gray-800 text-gray-400">
+                <span className="px-4 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-400">
                   Or continue with
                 </span>
               </div>
@@ -322,7 +328,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
               type="button"
               onClick={handleGoogleLogin}
               disabled={googleLoading || isLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 bg-gray-100 dark:bg-white text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-100 transition-colors duration-200 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {googleLoading ? (
                 <div className="flex items-center justify-center">
@@ -342,7 +348,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 <div className="w-full border-t border-gray-600"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-800 text-gray-400">
+                <span className="px-2 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-400">
                   New to our platform?
                 </span>
               </div>
@@ -351,7 +357,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             <button
               type="button"
               onClick={onSwitchToSignup}
-              className="w-full border border-gray-600 text-gray-300 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200"
+              className="w-full border text-gray-800 border-gray-800 dark:border-gray-600 dark:text-gray-300 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200"
             >
               Create New Account
             </button>

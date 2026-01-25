@@ -25,13 +25,13 @@ export default function TermsOfService() {
       </section>
 
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border dark:border-gray-700">
           <div className="prose prose-lg max-w-none prose-invert">
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold dark:text-white mb-4">
                 1. Agreement to Terms
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 By accessing or using our rental platform, you agree to be bound
                 by these Terms of Service and our Privacy Policy. If you
                 disagree with any part of these terms, you may not access our
@@ -40,14 +40,14 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold dark:text-white mb-4">
                 2. User Accounts
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 When you create an account with us, you must provide accurate,
                 complete, and current information. You are responsible for:
               </p>
-              <ul className="list-disc list-inside text-gray-300 space-y-2 mb-4">
+              <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2 mb-4">
                 <li>
                   Maintaining the confidentiality of your account credentials
                 </li>
@@ -61,14 +61,14 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold dark:text-white mb-4">
                 3. User Responsibilities
               </h2>
 
-              <h3 className="text-xl font-semibold text-gray-200 mb-3">
+              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-3">
                 Renters/Tenants
               </h3>
-              <ul className="list-disc list-inside text-gray-300 mb-4 space-y-2">
+              <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 mb-4 space-y-2">
                 <li>Provide accurate booking information</li>
                 <li>Respect property rules and regulations</li>
                 <li>Make timely payments as agreed</li>
@@ -76,10 +76,10 @@ export default function TermsOfService() {
                 <li>Communicate honestly with property owners</li>
               </ul>
 
-              <h3 className="text-xl font-semibold text-gray-200 mb-3">
+              <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-200 mb-3">
                 Home Owners/Landlords
               </h3>
-              <ul className="list-disc list-inside text-gray-300 mb-4 space-y-2">
+              <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 mb-4 space-y-2">
                 <li>Provide accurate property information and photos</li>
                 <li>Maintain properties in safe and habitable condition</li>
                 <li>Respond promptly to booking inquiries</li>
@@ -89,10 +89,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold dark:text-white mb-4">
                 4. Booking and Payments
               </h2>
-              <ul className="list-disc list-inside text-gray-300 space-y-2">
+              <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2">
                 <li>All bookings are subject to property availability</li>
                 <li>Payments are processed securely through PayStack</li>
                 <li>Booking fees and agent commissions are non-refundable</li>
@@ -107,14 +107,14 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold dark:text-white mb-4">
                 5. Cancellation and Refunds
               </h2>
 
-              <h3 className="text-xl font-semibold text-gray-200 mb-3">
+              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-3">
                 Cancellation by Renter
               </h3>
-              <ul className="list-disc list-inside text-gray-300 mb-4 space-y-2">
+              <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 mb-4 space-y-2">
                 <li>
                   More than 30 days before check-in: Full refund (minus fees)
                 </li>
@@ -122,23 +122,23 @@ export default function TermsOfService() {
                 <li>Less than 15 days before check-in: No refund</li>
               </ul>
 
-              <h3 className="text-xl font-semibold text-gray-200 mb-3">
+              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-3">
                 Cancellation by Owner
               </h3>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 If a property owner cancels a confirmed booking, we will help
                 you find alternative accommodation and provide a full refund.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold dark:text-white mb-4">
                 6. Property Listings
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Property owners are responsible for:
               </p>
-              <ul className="list-disc list-inside text-gray-300 space-y-2">
+              <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2">
                 <li>Accurate and truthful property descriptions</li>
                 <li>Current and representative photos</li>
                 <li>Disclosing any property issues or restrictions</li>
@@ -148,13 +148,13 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold dark:text-white mb-4">
                 7. Prohibited Activities
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 You may not use our platform to:
               </p>
-              <ul className="list-disc list-inside text-gray-300 space-y-2">
+              <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2">
                 <li>Post false, misleading, or fraudulent information</li>
                 <li>Harass, abuse, or harm another person</li>
                 <li>Violate any applicable laws or regulations</li>
@@ -168,10 +168,10 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold dark:text-white mb-4">
                 8. Intellectual Property
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 The platform and its original content, features, and
                 functionality are owned by us and are protected by international
                 copyright, trademark, and other intellectual property laws.
@@ -179,16 +179,16 @@ export default function TermsOfService() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold dark:text-white mb-4">
                 9. Limitation of Liability
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 To the maximum extent permitted by law, we shall not be liable
                 for any indirect, incidental, special, consequential, or
                 punitive damages, including without limitation, loss of profits,
                 data, use, goodwill, or other intangible losses, resulting from:
               </p>
-              <ul className="list-disc list-inside text-gray-300 space-y-2">
+              <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2">
                 <li>
                   Your access to or use of or inability to access or use the
                   platform
@@ -206,10 +206,10 @@ export default function TermsOfService() {
 
             {/* Termination */}
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold  dark:text-white mb-4">
                 10. Termination
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 We may terminate or suspend your account immediately, without
                 prior notice or liability, for any reason whatsoever, including
                 without limitation if you breach the Terms.
@@ -218,10 +218,10 @@ export default function TermsOfService() {
 
             {/* Governing Law */}
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold text-gray-600 dark:text-white mb-4">
                 11. Governing Law
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 These Terms shall be governed and construed in accordance with
                 the laws of Ghana, without regard to its conflict of law
                 provisions.
@@ -230,10 +230,10 @@ export default function TermsOfService() {
 
             {/* Changes to Terms */}
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold text-gray-600 dark:text-white mb-4">
                 12. Changes to Terms
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 We reserve the right, at our sole discretion, to modify or
                 replace these Terms at any time. By continuing to access or use
                 our platform after those revisions become effective, you agree
@@ -243,22 +243,22 @@ export default function TermsOfService() {
 
             {/* Contact Information */}
             <section>
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold dark:text-white mb-4">
                 13. Contact Information
               </h2>
-              <p className="text-gray-300 mb-4">
+              <p className="text-gray-600 text-gray-300 mb-4">
                 If you have any questions about these Terms, please contact us:
               </p>
-              <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
-                <p className="text-gray-300">
-                  <strong className="text-white">Email:</strong>{" "}
+              <div className="bg-gray-200 dark:bg-gray-700 p-6 rounded-lg border dark:border-gray-600 text-gray-700 dark:text-gray-800">
+                <p className="dark:text-gray-300">
+                  <strong className="dark:text-white">Email:</strong>{" "}
                   iddrisusulemana66 5@gmail.com
                   <br />
-                  <strong className="text-white">Phone:</strong> +233 55 133
-                  3780
+                  <strong className="dark:text-white">Phone:</strong> +233 55
+                  133 3780
                   <br />
-                  <strong className="text-white">Address:</strong> AAMUSTED,
-                  Tanoso - Kumasi, Ghana
+                  <strong className="dark:text-white">Address:</strong>{" "}
+                  AAMUSTED, Tanoso - Kumasi, Ghana
                 </p>
               </div>
             </section>

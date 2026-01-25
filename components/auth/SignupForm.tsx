@@ -293,36 +293,37 @@ const SignupForm: React.FC<SignupFormProps> = ({
   const userType: SignupData["userType"] = formData.userType;
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
-          <p className="text-gray-400">
+          <h2 className="text-3xl font-bold text-black dark:text-white mb-2 mt-4">
+            Create Account
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
             Join our platform and start your journey
           </p>
         </div>
 
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border dark:border-gray-700">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                 I want to join as a...
               </label>
               <select
                 name="userType"
                 value={formData.userType}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white mb-2"
+                className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white mb-2"
               >
                 <option value="renter">Renter / Tenant</option>
                 <option value="homeowner">Agent / Landlord</option>
                 <option value="hostel">Hostel Manager</option>
               </select>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 {getUserTypeDescription(formData.userType)}
                 <br />
-                <span className="text-[#00CFFF]">
+                <span className="text-[#FF4FA1] dark:text-[#00CFFF]">
                   Note: Google sign-up will use this selection
                 </span>
               </p>
@@ -330,7 +331,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
             {formData.userType === "hostel" && (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                   Hostel Name
                 </label>
                 <input
@@ -339,16 +340,16 @@ const SignupForm: React.FC<SignupFormProps> = ({
                   value={formData.hostelName}
                   onChange={handleChange}
                   required={formData.userType === "hostel"}
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400"
                   placeholder="Enter your hostel name"
                 />
               </div>
             )}
 
             {formData.userType !== "hostel" && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                     First Name
                   </label>
                   <input
@@ -357,12 +358,12 @@ const SignupForm: React.FC<SignupFormProps> = ({
                     value={formData.firstName}
                     onChange={handleChange}
                     required={userType !== "hostel"}
-                    className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400"
                     placeholder="First name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                     Last Name
                   </label>
                   <input
@@ -371,7 +372,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                     value={formData.lastName}
                     onChange={handleChange}
                     required={userType !== "hostel"}
-                    className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400"
                     placeholder="Last name"
                   />
                 </div>
@@ -379,7 +380,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <input
@@ -388,13 +389,13 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400"
                 placeholder="Enter your email"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                 Contact Number(Optional)
               </label>
               <input
@@ -402,18 +403,14 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400"
                 placeholder="020XXXXXXX"
               />
-              {/* <p className="mt-1 text-xs text-gray-400">
-                Required for email sign-up. Google accounts can add contact
-                number later in profile.
-              </p> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -423,7 +420,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400 pr-12"
+                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400 pr-12"
                     placeholder="••••••••"
                   />
                   <button
@@ -437,7 +434,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -447,7 +444,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-gray-700 text-white placeholder-gray-400 pr-12"
+                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400 pr-12"
                     placeholder="••••••••"
                   />
                   <button
@@ -470,7 +467,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 className="w-4 h-4 text-[#00CFFF] bg-gray-700 border-gray-600 rounded focus:ring-[#00CFFF] focus:ring-2 mt-1"
                 required
               />
-              <label className="text-sm text-gray-300">
+              <label className="text-sm text-gray-600 dark:text-gray-300">
                 I agree to the{" "}
                 <Link
                   href="terms"
@@ -514,7 +511,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 <div className="w-full border-t border-gray-600"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-gray-800 text-gray-400">
+                <span className="px-4 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-400">
                   Quick sign-up with
                 </span>
               </div>
@@ -525,7 +522,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
               type="button"
               onClick={handleGoogleSignup}
               disabled={googleLoading || isLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 bg-gray-100 dark:bg-white text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-100 transition-colors duration-200 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {googleLoading ? (
                 <div className="flex items-center justify-center">
@@ -546,7 +543,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 <div className="w-full border-t border-gray-600"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-800 text-gray-400">
+                <span className="px-2 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-400">
                   Already have an account?
                 </span>
               </div>
@@ -555,7 +552,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
             <button
               type="button"
               onClick={onSwitchToLogin}
-              className="w-full border border-gray-600 text-gray-300 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200"
+              className="w-full border text-gray-800 border-gray-800 dark:border-gray-600 dark:text-gray-300 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200"
             >
               Sign In Instead
             </button>
