@@ -11,7 +11,7 @@ export default function FAQPage() {
         {
           question: "How do I make a booking?",
           answer:
-            "Browse properties, select your dates and duration, fill in your details, and proceed to payment. You'll receive a booking confirmation with your unique code.",
+            "Browse properties, select property and rent tenure, fill in your details, and proceed to payment. You'll receive a booking confirmation with your unique code.",
         },
         {
           question: "What is the minimum rental duration?",
@@ -73,9 +73,9 @@ export default function FAQPage() {
         {faqCategories.map((category, categoryIndex) => (
           <div
             key={categoryIndex}
-            className="bg-gray-800 rounded-2xl p-8 border border-gray-700"
+            className="bg-white dark:bg-gray-800 rounded-2xl p-8 border dark:border-gray-700"
           >
-            <h2 className="text-3xl font-bold text-white mb-6 text-center">
+            <h2 className="text-3xl font-bold text-black dark:text-white mb-6 text-center">
               {category.category}
             </h2>
             <div className="space-y-4">
@@ -84,7 +84,7 @@ export default function FAQPage() {
                 return (
                   <div
                     key={questionIndex}
-                    className="border-b border-gray-700 last:border-b-0 pb-4 last:pb-0"
+                    className="border-b border-gray-400 dark:border-gray-700 last:border-b-0 pb-4 last:pb-0"
                   >
                     <button
                       onClick={() =>
@@ -92,7 +92,7 @@ export default function FAQPage() {
                       }
                       className="flex justify-between items-center w-full text-left"
                     >
-                      <h3 className="text-lg font-semibold text-white pr-4">
+                      <h3 className="text-lg font-semibold dark:text-white pr-4">
                         {item.question}
                       </h3>
                       <span className="text-[#00CFFF] text-xl flex-shrink-0">
@@ -101,7 +101,7 @@ export default function FAQPage() {
                     </button>
                     {openQuestion === globalIndex && (
                       <div className="mt-3 pl-2">
-                        <p className="text-gray-400 leading-relaxed">
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                           {item.answer}
                         </p>
                       </div>
@@ -114,7 +114,6 @@ export default function FAQPage() {
         ))}
       </section>
 
-      {/* Still Need Help */}
       <section className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-[#FF4FA1] rounded-2xl p-8 text-center text-white">
           <h2 className="text-2xl font-bold mb-4">Still Need Help?</h2>
