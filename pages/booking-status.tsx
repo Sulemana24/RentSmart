@@ -12,7 +12,7 @@ interface BookingStatus {
 export default function BookingStatusPage() {
   const [bookingCode, setBookingCode] = useState("");
   const [bookingStatus, setBookingStatus] = useState<BookingStatus | null>(
-    null
+    null,
   );
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,14 +22,12 @@ export default function BookingStatusPage() {
 
     setIsLoading(true);
 
-    // Simulate API call
     setTimeout(() => {
       const booking = MOCK_BOOKING_DATA[bookingCode.toUpperCase()];
 
       if (booking) {
-        // Find the corresponding property
         const property = PROPERTYLISTINGSAMPLE.find(
-          (prop) => prop.id === booking.propertyId
+          (prop) => prop.id === booking.propertyId,
         );
 
         setBookingStatus({
@@ -46,15 +44,15 @@ export default function BookingStatusPage() {
 
   const calculateDurationInYears = (
     checkIn: string,
-    checkOut: string
+    checkOut: string,
   ): number => {
     const start = new Date(checkIn);
     const end = new Date(checkOut);
     const durationInDays = Math.ceil(
-      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
     );
     const durationInYears = durationInDays / 365;
-    return Math.round(durationInYears * 10) / 10; // Round to 1 decimal place
+    return Math.round(durationInYears * 10) / 10;
   };
 
   const getStatusColor = (status: string) => {
@@ -84,10 +82,8 @@ export default function BookingStatusPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      {/* Hero Section */}
+    <div className="min-h-screen dark:bg-gray-900">
       <section className="relative py-20 text-white">
-        {/* Background Image with Overlay */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -109,12 +105,11 @@ export default function BookingStatusPage() {
       </section>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Booking Code Input Section */}
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700 mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border dark:border-gray-700 mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold dark:text-white text-center mb-6">
             Check Your Booking Status
           </h2>
-          <p className="text-gray-400 text-center mb-8 max-w-2xl mx-auto">
+          <p className="text-gray-600 dark:text-gray-400 text-center mb-8 max-w-2xl mx-auto">
             Enter your 6-digit booking code to view your reservation details and
             current status
           </p>
@@ -139,7 +134,6 @@ export default function BookingStatusPage() {
             </div>
           </form>
 
-          {/* Sample Booking Codes Hint */}
           <div className="mt-6 text-center">
             <p className="text-gray-500 text-sm">
               Try sample codes: ABC123, XYZ789, DEF456, GHI789, JKL012
@@ -147,16 +141,15 @@ export default function BookingStatusPage() {
           </div>
         </div>
 
-        {/* Booking Status Display */}
         {bookingStatus !== null && (
-          <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
+          <div className="dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700">
             {!bookingStatus.bookingData ? (
               <div className="text-center">
                 <div className="text-6xl mb-4">❌</div>
-                <h3 className="text-2xl font-bold text-white mb-4">
+                <h3 className="text-2xl font-bold dark:text-white mb-4">
                   Booking Not Found
                 </h3>
-                <p className="text-gray-400 mb-6">
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
                   We couldn't find a booking with the code "{bookingCode}".
                   Please check your code and try again.
                 </p>
@@ -171,7 +164,7 @@ export default function BookingStatusPage() {
                     Try Another Code
                   </button>
                   <Link href="/contact">
-                    <button className="border border-gray-500 text-gray-300 px-6 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200">
+                    <button className="border text-gray-600 border-gray-500 dark:text-gray-300 px-6 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200">
                       Contact Support
                     </button>
                   </Link>
@@ -179,41 +172,43 @@ export default function BookingStatusPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Status Header */}
                 <div className="text-center">
                   <div
                     className={`inline-flex items-center px-4 py-2 rounded-full border text-sm font-semibold mb-4 ${getStatusColor(
-                      bookingStatus.bookingData.status
+                      bookingStatus.bookingData.status,
                     )}`}
                   >
                     {getStatusText(bookingStatus.bookingData.status)}
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">
+                  <h3 className="text-2xl font-bold dark:text-white mb-2">
                     {bookingStatus.property?.name || "Property Not Found"}
                   </h3>
-                  <p className="text-gray-400">
+                  <p className="text-gray-600 dark:text-gray-400">
                     Booking Code: {bookingStatus.bookingData.id}
                   </p>
                 </div>
 
-                {/* Booking Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-700/50 rounded-xl p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 dark:bg-gray-700/50 rounded-xl p-6">
                   <div className="space-y-4">
                     <div>
-                      <label className="text-gray-400 text-sm">Check-in</label>
-                      <p className="text-white font-semibold">
+                      <label className="text-gray-600 dark:text-gray-400 text-sm">
+                        Check-in
+                      </label>
+                      <p className="dark:text-white font-semibold">
                         {new Date(
-                          bookingStatus.bookingData.checkIn
+                          bookingStatus.bookingData.checkIn,
                         ).toLocaleDateString()}
                       </p>
                     </div>
 
                     <div>
-                      <label className="text-gray-400 text-sm">Duration</label>
-                      <p className="text-white font-semibold">
+                      <label className="text-gray-600 dark:text-gray-400 text-sm">
+                        Duration
+                      </label>
+                      <p className="dark:text-white font-semibold">
                         {calculateDurationInYears(
                           bookingStatus.bookingData.checkIn,
-                          bookingStatus.bookingData.checkOut
+                          bookingStatus.bookingData.checkOut,
                         )}{" "}
                         years
                       </p>
@@ -221,31 +216,35 @@ export default function BookingStatusPage() {
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-gray-400 text-sm">
+                      <label className="text-gray-600 dark:text-gray-400 text-sm">
                         Property Price
                       </label>
-                      <p className="text-white font-semibold">
+                      <p className="dark:text-white font-semibold">
                         Ghc{bookingStatus.property?.price}/year
                       </p>
                     </div>
 
                     <div>
-                      <label className="text-gray-400 text-sm">Host</label>
-                      <p className="text-white font-semibold">
+                      <label className="text-gray-600 dark:text-gray-400 text-sm">
+                        Host
+                      </label>
+                      <p className="dark:text-white font-semibold">
                         {bookingStatus.property?.host || "Not Available"}
                       </p>
                     </div>
                     <div>
-                      <label className="text-gray-400 text-sm">
+                      <label className="text-gray-600 dark:text-gray-400 text-sm">
                         Total Amount Paid
                       </label>
-                      <p className="text-white font-semibold text-xl">
+                      <p className="dark:text-white font-semibold text-xl">
                         {bookingStatus.bookingData.totalAmount}
                       </p>
                     </div>
                     <div>
-                      <label className="text-gray-400 text-sm">Location</label>
-                      <p className="text-white font-semibold">
+                      <label className="text-gray-600 dark:text-gray-400 text-sm">
+                        Location
+                      </label>
+                      <p className="dark:text-white font-semibold">
                         {bookingStatus.property?.address.city},{" "}
                         {bookingStatus.property?.address.state}
                       </p>
@@ -253,13 +252,12 @@ export default function BookingStatusPage() {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                   <button className="bg-[#FF4FA1] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#00CFFF] transition-colors duration-200">
                     Continue to Dashboard
                   </button>
                   <Link href="/contact">
-                    <button className="border border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200">
+                    <button className="border border-gray-700 dark:border-gray-500 dark:text-gray-300 px-8 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200">
                       Contact Support
                     </button>
                   </Link>
@@ -268,7 +266,7 @@ export default function BookingStatusPage() {
                       setBookingCode("");
                       setBookingStatus(null);
                     }}
-                    className="border border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold hover:border-[#FF4FA1] hover:text-[#FF4FA1] transition-colors duration-200"
+                    className="border border-gray-700 dark:border-gray-500 dark:text-gray-300 px-8 py-3 rounded-lg font-semibold hover:border-[#FF4FA1] hover:text-[#FF4FA1] transition-colors duration-200"
                   >
                     Check Another Booking
                   </button>
@@ -280,13 +278,13 @@ export default function BookingStatusPage() {
 
         {/* Help Section */}
         {!bookingStatus && (
-          <div className="bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-700 mt-8">
+          <div className="dark:bg-gray-800 rounded-2xl shadow-lg p-8 border dark:border-gray-700 mt-8">
             <div className="text-center">
               <div className="text-4xl mb-4">💡</div>
-              <h3 className="text-xl font-bold text-white mb-4">
+              <h3 className="text-xl font-bold dark:text-white mb-4">
                 Need Help Finding Your Booking Code?
               </h3>
-              <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
+              <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
                 Your booking code was sent to your email after you made the
                 reservation. Check your confirmation email or contact our
                 support team for assistance.

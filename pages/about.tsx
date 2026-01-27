@@ -1,6 +1,21 @@
 import Header from "../components/layout/Header";
 import Link from "next/link";
 import { useState } from "react";
+import {
+  FaCalendarAlt,
+  FaCheckCircle,
+  FaHeadset,
+  FaMoneyBillWave,
+  FaHome,
+  FaUsers,
+  FaCity,
+  FaClock,
+  FaChevronDown,
+  FaChevronUp,
+  FaBuilding,
+  FaPhone,
+  FaSearch,
+} from "react-icons/fa";
 
 export default function AboutPage() {
   const [showFullMission, setShowFullMission] = useState(false);
@@ -10,31 +25,47 @@ export default function AboutPage() {
       title: "Easy Booking",
       description:
         "Simple and straightforward booking process for all properties",
-      icon: "📅",
+      icon: <FaCalendarAlt className="text-3xl" />,
     },
     {
       title: "Verified Properties",
       description:
         "All properties are verified and quality-checked for your safety",
-      icon: "✅",
+      icon: <FaCheckCircle className="text-3xl" />,
     },
     {
       title: "24/7 Support",
       description: "Round-the-clock customer support to assist you anytime",
-      icon: "📞",
+      icon: <FaHeadset className="text-3xl" />,
     },
     {
       title: "Best Prices",
       description: "Competitive pricing with no hidden charges",
-      icon: "💰",
+      icon: <FaMoneyBillWave className="text-3xl" />,
     },
   ];
 
   const stats = [
-    { number: "10,000+", label: "Properties Listed" },
-    { number: "50,000+", label: "Happy Customers" },
-    { number: "100+", label: "Cities Covered" },
-    { number: "24/7", label: "Customer Support" },
+    {
+      number: "10,000+",
+      label: "Properties Listed",
+      icon: <FaHome className="text-xl" />,
+    },
+    {
+      number: "50,000+",
+      label: "Happy Customers",
+      icon: <FaUsers className="text-xl" />,
+    },
+    {
+      number: "100+",
+      label: "Cities Covered",
+      icon: <FaCity className="text-xl" />,
+    },
+    {
+      number: "24/7",
+      label: "Customer Support",
+      icon: <FaClock className="text-xl" />,
+    },
   ];
 
   return (
@@ -51,6 +82,9 @@ export default function AboutPage() {
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm mb-6">
+            <FaBuilding className="text-4xl text-white" />
+          </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-6">About Us</h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto text-gray-200">
             We're revolutionizing the way people find and book rental properties
@@ -63,7 +97,8 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white mb-6 flex items-center gap-2">
+                <FaBuilding className="text-[#00CFFF]" />
                 Our Mission
               </h2>
               <p className="text-lg text-gray-800 dark:text-gray-300 mb-6">
@@ -95,18 +130,29 @@ export default function AboutPage() {
               <div className="flex space-x-4">
                 <button
                   onClick={() => setShowFullMission(!showFullMission)}
-                  className="bg-[#00CFFF] text-white px-6 py-3 rounded-lg hover:bg-[#FF4FA1] transition-colors duration-200 font-semibold"
+                  className="bg-[#FF4FA1] text-white px-6 py-3 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold flex items-center gap-2"
                 >
-                  {showFullMission ? "Show Less" : "Learn More"}
+                  {showFullMission ? (
+                    <>
+                      <FaChevronUp />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <FaChevronDown />
+                      Learn More
+                    </>
+                  )}
                 </button>
                 <Link href="/contact">
-                  <button className="border border-[#00CFFF] text-[#00CFFF] px-6 py-3 rounded-lg hover:bg-[#00CFFF] hover:text-white transition-colors duration-200 font-semibold">
+                  <button className="border border-[#00CFFF] text-[#00CFFF] px-6 py-3 rounded-lg hover:bg-[#00CFFF] hover:text-white transition-colors duration-200 font-semibold flex items-center gap-2">
+                    <FaPhone />
                     Contact Us
                   </button>
                 </Link>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border dark:border-gray-700 hover:shadow-xl transition-shadow duration-300">
               <img
                 src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                 alt="Our team"
@@ -120,10 +166,16 @@ export default function AboutPage() {
       {/* Stats Section */}
       <section className="py-16 bg-white dark:bg-gray-800 border-t dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="p-6">
-                <div className="text-3xl md:text-4xl font-bold text-[#00CFFF] mb-2">
+              <div
+                key={index}
+                className="p-6 text-center bg-gray-50 dark:bg-gray-900/50 rounded-xl hover:bg-white dark:hover:bg-gray-800 transition-colors duration-200"
+              >
+                <div className="text-[#00CFFF] mb-3 flex justify-center">
+                  {stat.icon}
+                </div>
+                <div className="text-3xl md:text-4xl font-bold text-[#FF4FA1] mb-2">
                   {stat.number}
                 </div>
                 <div className="text-gray-700 dark:text-gray-300 font-medium">
@@ -139,6 +191,9 @@ export default function AboutPage() {
       <section className="py-16 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#00CFFF]/10 mb-4">
+              <FaCheckCircle className="text-3xl text-[#00CFFF]" />
+            </div>
             <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white mb-4">
               Why Choose Us?
             </h2>
@@ -150,9 +205,11 @@ export default function AboutPage() {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 border dark:border-gray-700"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 border dark:border-gray-700 hover:border-[#00CFFF]"
               >
-                <div className="text-4xl mb-4">{feature.icon}</div>
+                <div className="text-[#FF4FA1] mb-4 flex justify-center">
+                  {feature.icon}
+                </div>
                 <h3 className="text-xl font-semibold text-black dark:text-white mb-3">
                   {feature.title}
                 </h3>
@@ -167,6 +224,9 @@ export default function AboutPage() {
 
       <section className="py-16 bg-white dark:bg-gray-800 border-t dark:border-gray-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#FF4FA1] mb-4">
+            <FaHome className="text-2xl text-white" />
+          </div>
           <h2 className="text-3xl md:text-4xl font-bold text-black dark:text-white mb-4">
             Ready to Find Your Perfect Home?
           </h2>
@@ -176,12 +236,14 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/">
-              <button className="bg-[#FF4FA1] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#00CFFF] transition-colors duration-200">
+              <button className="bg-[#FF4FA1] text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-200 flex items-center gap-2">
+                <FaSearch />
                 Browse Properties
               </button>
             </Link>
             <Link href="/contact">
-              <button className="border border-gray-500 dark:text-gray-300 px-8 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200">
+              <button className="border border-gray-500 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200 flex items-center gap-2">
+                <FaPhone />
                 Contact Our Team
               </button>
             </Link>

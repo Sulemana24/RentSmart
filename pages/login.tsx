@@ -1,16 +1,33 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { FiEye, FiEyeOff, FiLock, FiMail, FiUser, FiKey } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 
-interface AdminAuthFormProps {
-  initialMode?: "login" | "signup";
-}
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
-const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
+const ADMIN_EMAIL_WHITELIST = [
+  "simlitechnologies@gmail.com",
+  "iddrisusulemana1996@gmail.com",
+];
+
+const isAllowedAdminEmail = (email: string) => {
+  const e = email.toLowerCase().trim();
+  return ADMIN_EMAIL_WHITELIST.includes(e);
+};
+
+const AdminAuthForm = ({
   initialMode = "login",
+}: {
+  initialMode?: "login" | "signup";
 }) => {
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
@@ -18,22 +35,15 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Login form state
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  });
-
-  // Signup form state
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({
     fullName: "",
     email: "",
-    adminKey: "",
+
     password: "",
     confirmPassword: "",
   });
 
-  // Handle login input changes
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLoginData((prev) => ({
@@ -42,7 +52,6 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
     }));
   };
 
-  // Handle signup input changes
   const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSignupData((prev) => ({
@@ -51,92 +60,100 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
     }));
   };
 
-  // Handle login submission
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Simulate API call
+    if (!isAllowedAdminEmail(loginData.email)) {
+      alert("Unauthorized admin email.");
+      return;
+    }
+
     try {
-      // TODO: Replace with actual admin authentication API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setIsLoading(true);
+      const cred = await signInWithEmailAndPassword(
+        auth,
+        loginData.email,
+        loginData.password,
+      );
 
-      // For demo purposes, check for specific admin credentials
-      if (
-        loginData.email === "admin@rentsmart.com" &&
-        loginData.password === "admin123"
-      ) {
-        localStorage.setItem("adminToken", "demo-admin-token");
-        localStorage.setItem("role", "admin");
-        router.push("/admin");
-      } else {
-        alert(
-          "Invalid admin credentials. Please use admin@rentsmart.com / admin123 for demo.",
-        );
+      const snap = await getDoc(doc(db, "users", cred.user.uid));
+      if (!snap.exists() || snap.data().role !== "admin") {
+        alert("Access denied. Not an admin.");
+        await auth.signOut();
+        return;
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("Login failed. Please try again.");
+
+      router.push("/admin");
+    } catch (err: any) {
+      alert(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle signup submission
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
+    if (!isAllowedAdminEmail(signupData.email)) {
+      alert("This email is not allowed to be admin.");
+      return;
+    }
+
     if (signupData.password !== signupData.confirmPassword) {
-      alert("Passwords do not match");
+      alert("Passwords do not match.");
       return;
     }
 
-    if (signupData.adminKey !== "ADMIN2024") {
-      alert("Invalid admin registration key");
-      return;
-    }
-
-    setIsLoading(true);
-
     try {
-      // TODO: Replace with actual admin registration API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setIsLoading(true);
 
-      // For demo, simulate successful registration
-      localStorage.setItem("adminToken", "demo-admin-token");
-      localStorage.setItem("role", "admin");
-      alert("Admin account created successfully!");
-      router.push("/admin");
-    } catch (error) {
-      console.error("Signup error:", error);
-      alert("Registration failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      const cred = await createUserWithEmailAndPassword(
+        auth,
+        signupData.email,
+        signupData.password,
+      );
 
-  // Handle Google authentication (Admin only)
-  const handleGoogleAuth = async () => {
-    setIsLoading(true);
-    try {
-      // TODO: Implement Google OAuth for admin
-      alert("Google authentication for admin coming soon!");
-    } catch (error) {
-      console.error("Google auth error:", error);
-      alert("Google authentication failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Demo credentials for testing
-  const useDemoCredentials = () => {
-    if (mode === "login") {
-      setLoginData({
-        email: "admin@rentsmart.com",
-        password: "admin123",
+      await setDoc(doc(db, "users", cred.user.uid), {
+        fullName: signupData.fullName,
+        email: signupData.email,
+        role: "admin",
+        createdAt: serverTimestamp(),
       });
+
+      router.push("/admin");
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const cred = await signInWithPopup(auth, provider);
+
+      if (!isAllowedAdminEmail(cred.user.email || "")) {
+        alert("Google account not allowed.");
+        await auth.signOut();
+        return;
+      }
+
+      const ref = doc(db, "users", cred.user.uid);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        await setDoc(ref, {
+          fullName: cred.user.displayName,
+          email: cred.user.email,
+          role: "admin",
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      router.push("/admin");
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -145,8 +162,8 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-[#00CFFF] to-[#FF4FA1] flex items-center justify-center">
+          <div className="flex justify-center mb-4 mt-6">
+            <div className="w-16 h-16 rounded-full bg-[#00CFFF]  flex items-center justify-center">
               <FiKey className="w-8 h-8 text-white" />
             </div>
           </div>
@@ -162,7 +179,6 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
 
         {/* Auth Card */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-2xl p-8 border border-gray-200 dark:border-gray-700">
-          {/* Mode Toggle */}
           <div className="flex mb-6 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <button
               onClick={() => setMode("login")}
@@ -186,33 +202,8 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
             </button>
           </div>
 
-          {/* Demo Credentials Note */}
-          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg">
-            <div className="flex items-start gap-3">
-              <div className="text-blue-600 dark:text-blue-400 mt-0.5">
-                <FiKey className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                  Demo Admin Credentials
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  Email: admin@rentsmart.com • Password: admin123
-                </p>
-                <button
-                  onClick={useDemoCredentials}
-                  className="mt-2 text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-700 px-3 py-1 rounded transition-colors"
-                >
-                  Use Demo Credentials
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Login Form */}
           {mode === "login" ? (
             <form onSubmit={handleLoginSubmit} className="space-y-6">
-              {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Admin Email
@@ -261,7 +252,6 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between">
                 <label className="flex items-center">
                   <input
@@ -285,7 +275,7 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-[#00CFFF] to-cyan-500 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                className="w-full bg-[#00CFFF]  text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
@@ -321,9 +311,7 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
               </button>
             </form>
           ) : (
-            /* Signup Form */
             <form onSubmit={handleSignupSubmit} className="space-y-6">
-              {/* Full Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Full Name
@@ -339,12 +327,11 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
                     onChange={handleSignupChange}
                     required
                     className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    placeholder="John Doe"
+                    placeholder="Enter your name"
                   />
                 </div>
               </div>
 
-              {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Admin Email
@@ -363,30 +350,6 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
                     placeholder="admin@rentsmart.com"
                   />
                 </div>
-              </div>
-
-              {/* Admin Registration Key */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Admin Registration Key
-                </label>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    <FiKey className="w-5 h-5" />
-                  </div>
-                  <input
-                    type="password"
-                    name="adminKey"
-                    value={signupData.adminKey}
-                    onChange={handleSignupChange}
-                    required
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    placeholder="Enter admin registration key"
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Demo key: <span className="font-mono">ADMIN2024</span>
-                </p>
               </div>
 
               {/* Password */}
@@ -478,7 +441,7 @@ const AdminAuthForm: React.FC<AdminAuthFormProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-[#FF4FA1] to-pink-500 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                className="w-full bg-[#00CFFF]  text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">

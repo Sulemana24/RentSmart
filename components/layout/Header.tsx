@@ -92,13 +92,7 @@ const Header: React.FC = () => {
             email: data.email,
           });
         }
-      } catch {
-        showToast({
-          title: "Failed",
-          message: "Failed to fetch user data!",
-          type: "error",
-        });
-      }
+      } catch {}
     });
 
     return () => unsub();
