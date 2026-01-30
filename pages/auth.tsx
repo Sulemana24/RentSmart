@@ -16,10 +16,7 @@ export default function AuthPage() {
 
   const handleLogin = async (data: LoginData) => {
     try {
-      const user = await loginUser(data.email, data.password);
-      const role = await getUserRole(user.uid);
-
-      if (!role) throw new Error("User role not found");
+      const { user, role } = await loginUser(data.email, data.password);
 
       localStorage.setItem("role", role);
 
