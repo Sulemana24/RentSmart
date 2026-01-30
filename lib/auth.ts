@@ -51,8 +51,10 @@ export const signupUser = async (
 export const loginUser = async (
   email: string,
   password: string,
-  selectedRole: "renter" | "homeowner" | "hostel" | "admin",
-) => {
+): Promise<{
+  user: User;
+  role: "renter" | "homeowner" | "hostel" | "admin";
+}> => {
   try {
     const userCred = await signInWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
@@ -66,14 +68,12 @@ export const loginUser = async (
 
     const { role } = userSnap.data();
 
-    if (role !== selectedRole) {
+    if (!role) {
       await auth.signOut();
-      throw new Error(
-        `This account is registered as ${role}. You selected ${selectedRole}.`,
-      );
+      throw new Error("User role not found");
     }
 
-    return userCred.user;
+    return { user: userCred.user, role };
   } catch (error: any) {
     if (
       error.code === "auth/wrong-password" ||
