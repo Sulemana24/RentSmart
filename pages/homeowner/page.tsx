@@ -15,6 +15,7 @@ import Messages from "./components/Messages";
 import Support from "./components/Support";
 import Settings from "./components/Settings";
 import { useToast } from "../../components/ToastProvider";
+import Footer from "./components/Footer";
 
 const HomeownerPage = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -146,7 +147,6 @@ const HomeownerPage = () => {
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Desktop Sidebar */}
           <div className="hidden md:block w-full md:w-64 flex-shrink-0">
             <Sidebar
               activeSection={activeSection}
@@ -154,10 +154,10 @@ const HomeownerPage = () => {
             />
           </div>
 
-          {/* Main Content */}
           <div className="flex-1">{renderSection()}</div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

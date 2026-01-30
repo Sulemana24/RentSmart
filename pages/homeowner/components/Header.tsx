@@ -1,7 +1,9 @@
 "use client";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { FiSun, FiMoon, FiBell, FiLogOut } from "react-icons/fi";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 interface HeaderProps {
   darkMode: boolean;
@@ -23,12 +25,32 @@ const Header = ({
   const router = useRouter();
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
+  const [userName, setUserName] = useState("Loading...");
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          setUserName(`${data.firstName || ""} ${data.lastName || ""}`);
+          setUserRole(data.role || "");
+        }
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (profileButtonRef.current?.contains(event.target as Node)) {
-        return;
-      }
+      if (profileButtonRef.current?.contains(event.target as Node)) return;
 
       if (
         profileOpen &&
@@ -51,7 +73,7 @@ const Header = ({
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Homeowner Dashboard
+              {userRole === "homeowner" ? "Homeowner Dashboard" : "Dashboard"}
             </h1>
           </div>
 
@@ -74,7 +96,6 @@ const Header = ({
               <FiBell className="w-5 h-5" />
             </button>
 
-            {/* Profile Dropdown */}
             <div className="relative">
               <button
                 ref={profileButtonRef}
@@ -82,18 +103,24 @@ const Header = ({
                 className="flex items-center gap-2 hover:opacity-90 transition-opacity"
               >
                 <div className="w-8 h-8 rounded-full bg-[#00CFFF] flex items-center justify-center text-white font-semibold">
-                  IS
+                  {userName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
                 </div>
                 <div className="hidden md:block text-left">
                   <div className="text-sm font-medium text-gray-900 dark:text-white">
-                    Iddi Sule
+                    {userName || "User"}
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-400">
-                    Homeowner
+                    {userRole || "Role"}
                   </div>
                 </div>
                 <svg
-                  className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 text-gray-400 transition-transform ${
+                    profileOpen ? "rotate-180" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

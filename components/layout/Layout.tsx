@@ -21,7 +21,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-grow my-10 mx-4 md:mx-8 xl:max-w-7xl">
         {children}
       </main>
-      <Footer />
+      {!hideLayout && <Footer />}
     </div>
   );
 };

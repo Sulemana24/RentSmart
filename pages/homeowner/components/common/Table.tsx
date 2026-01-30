@@ -1,5 +1,5 @@
 "use client";
-import { FiChevronRight } from "react-icons/fi";
+import { FiChevronRight, FiEdit, FiEye, FiTrash } from "react-icons/fi";
 
 interface Column {
   key: string;
@@ -86,13 +86,13 @@ const Table = ({
             ) : (
               <>
                 <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#00CFFF] hover:bg-[#00CFFF]/10 rounded-lg transition-colors">
-                  👁️
+                  <FiEye />
                 </button>
                 <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors">
-                  ✏️
+                  <FiEdit />
                 </button>
                 <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#FF4FA1] hover:bg-[#FF4FA1]/10 rounded-lg transition-colors">
-                  🗑️
+                  <FiTrash />
                 </button>
               </>
             )}
