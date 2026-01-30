@@ -1,24 +1,37 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+
+interface UserData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+
 const Settings = () => {
-  const notificationOptions = [
-    {
-      label: "Email notifications",
-      description: "Receive email updates about bookings and payments",
-    },
-    {
-      label: "SMS notifications",
-      description: "Get text messages for urgent matters",
-    },
-    {
-      label: "Push notifications",
-      description: "Receive push notifications on your device",
-    },
-    {
-      label: "Booking alerts",
-      description: "Get notified about new booking requests",
-    },
-  ];
+  const [userData, setUserData] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data() as UserData;
+          setUserData(data);
+        }
+      } else {
+        setUserData(null); // User is logged out
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -40,92 +53,38 @@ const Settings = () => {
                 </label>
                 <input
                   type="text"
-                  defaultValue="Iddi Sule"
+                  value={
+                    userData ? `${userData.firstName} ${userData.lastName}` : ""
+                  }
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
+                  readOnly
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Email Address
                 </label>
                 <input
                   type="email"
-                  defaultValue="iddi@gmail.com"
+                  value={userData?.email || ""}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
+                  readOnly
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Phone Number
                 </label>
                 <input
                   type="tel"
-                  defaultValue="+233 20 123 4567"
+                  value={userData?.phone || ""}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  defaultValue="RentSmart"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
+                  readOnly
                 />
               </div>
             </div>
-          </div>
-
-          {/* Notification Settings */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Notification Preferences
-            </h3>
-            <div className="space-y-3">
-              {notificationOptions.map((item, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    defaultChecked
-                    className="mt-1 w-4 h-4 text-[#00CFFF] bg-gray-100 border-gray-300 rounded focus:ring-[#00CFFF] dark:focus:ring-[#00CFFF] dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900 dark:text-white">
-                      {item.label}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {item.description}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Security Settings */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Security
-            </h3>
-            <div className="space-y-4">
-              <button className="w-full md:w-auto px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                Change Password
-              </button>
-              <button className="w-full md:w-auto px-6 py-3 border border-red-300 dark:border-red-600 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                Deactivate Account
-              </button>
-            </div>
-          </div>
-
-          {/* Save Changes */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <button className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              Cancel
-            </button>
-            <button className="px-6 py-3 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90 transition-colors">
-              Save Changes
-            </button>
           </div>
         </div>
       </div>

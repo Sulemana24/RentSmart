@@ -1,6 +1,19 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import {
+  FaEnvelope,
+  FaPhone,
+  FaCommentDots,
+  FaBuilding,
+  FaClock,
+  FaHome,
+  FaInfoCircle,
+  FaClipboardCheck,
+  FaMapMarkerAlt,
+  FaPaperPlane,
+  FaComment,
+} from "react-icons/fa";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -30,29 +43,53 @@ export default function ContactPage() {
 
   const contactMethods = [
     {
-      icon: "📧",
+      icon: <FaEnvelope className="text-2xl" />,
       title: "Email Us",
       details: "iddrisusulemana665@gmail.com",
       description: "Send us an email anytime",
     },
     {
-      icon: "📞",
+      icon: <FaPhone className="text-2xl" />,
       title: "Call Us",
       details: "+233 (55) 133-3780",
       description: "Mon-Fri from 8am to 6pm",
     },
     {
-      icon: "💬",
+      icon: <FaCommentDots className="text-2xl" />,
       title: "Live Chat",
       details: "+233 (55) 133-3780",
       description: "24/7 customer support",
     },
     {
-      icon: "🏢",
+      icon: <FaBuilding className="text-2xl" />,
       title: "Visit Us",
       details: "AAMUSTED, Tanoso, Kumasi",
       description: "Come say hello at our office",
     },
+  ];
+
+  const quickLinks = [
+    {
+      icon: <FaHome className="text-lg" />,
+      text: "Browse Properties",
+      href: "/",
+    },
+    {
+      icon: <FaInfoCircle className="text-lg" />,
+      text: "Learn About Us",
+      href: "/about",
+    },
+    {
+      icon: <FaClipboardCheck className="text-lg" />,
+      text: "Check Booking Status",
+      href: "/booking-status",
+    },
+  ];
+
+  const officeHours = [
+    { day: "Monday - Friday", time: "8:00 AM - 6:00 PM" },
+    { day: "Saturday", time: "9:00 AM - 4:00 PM" },
+    { day: "Sunday", time: "10:00 AM - 2:00 PM" },
   ];
 
   return (
@@ -80,7 +117,8 @@ export default function ContactPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div>
-            <h2 className="text-3xl font-bold text-black dark:text-white mb-6">
+            <h2 className="text-3xl font-bold text-black dark:text-white mb-6 flex items-center gap-2">
+              <FaComment className="text-[#00CFFF]" />
               Get in Touch
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
@@ -90,8 +128,13 @@ export default function ContactPage() {
 
             <div className="space-y-6">
               {contactMethods.map((method, index) => (
-                <div key={index} className="flex items-start space-x-4">
-                  <div className="text-2xl flex-shrink-0">{method.icon}</div>
+                <div
+                  key={index}
+                  className="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                >
+                  <div className="text-[#00CFFF] flex-shrink-0 p-2 bg-white dark:bg-gray-700 rounded-lg">
+                    {method.icon}
+                  </div>
                   <div>
                     <h3 className="text-lg font-semibold text-black dark:text-white">
                       {method.title}
@@ -109,56 +152,51 @@ export default function ContactPage() {
 
             {/* Office Hours */}
             <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-black dark:text-white mb-4">
+              <h3 className="text-xl font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
+                <FaClock className="text-[#00CFFF]" />
                 Office Hours
               </h3>
-              <div className="space-y-2 text-gray-600 dark:text-gray-300">
-                <div className="flex justify-between">
-                  <span>Monday - Friday</span>
-                  <span>8:00 AM - 6:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Saturday</span>
-                  <span>9:00 AM - 4:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sunday</span>
-                  <span>10:00 AM - 2:00 PM</span>
-                </div>
+              <div className="space-y-3">
+                {officeHours.map((hour, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg"
+                  >
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                      {hour.day}
+                    </span>
+                    <span className="text-[#FF4FA1] dark:text-[#00CFFF] font-semibold">
+                      {hour.time}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Quick Links */}
             <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-black dark:text-white mb-4">
+              <h3 className="text-xl font-semibold text-black dark:text-white mb-4 flex items-center gap-2">
+                <FaMapMarkerAlt className="text-[#00CFFF]" />
                 Quick Links
               </h3>
               <div className="space-y-3">
-                <Link
-                  href="/"
-                  className="block text-[#00CFFF] hover:text-[#FF4FA1] transition-colors duration-200"
-                >
-                  Browse Properties
-                </Link>
-                <Link
-                  href="/about"
-                  className="block text-[#00CFFF] hover:text-[#FF4FA1] transition-colors duration-200"
-                >
-                  Learn About Us
-                </Link>
-                <Link
-                  href="/booking-status"
-                  className="block text-[#00CFFF] hover:text-[#FF4FA1] transition-colors duration-200"
-                >
-                  Check Booking Status
-                </Link>
+                {quickLinks.map((link, index) => (
+                  <Link
+                    key={index}
+                    href={link.href}
+                    className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-[#FF4FA1] dark:hover:text-[#00CFFF] transition-colors duration-200 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/50"
+                  >
+                    <span className="text-[#00CFFF]">{link.icon}</span>
+                    <span>{link.text}</span>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Contact Form */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border dark:border-gray-700">
-            <h3 className="text-2xl font-bold text-black dark:text-white mb-6">
+            <h3 className="text-2xl font-bold text-black dark:text-white mb-6 flex items-center gap-2">
               Send us a Message
             </h3>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -166,7 +204,7 @@ export default function ContactPage() {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2"
+                    className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2 flex items-center gap-2"
                   >
                     Full Name *
                   </label>
@@ -177,14 +215,14 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2 focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400"
+                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400 transition-all duration-200"
                     placeholder="Your full name"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2"
+                    className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2 flex items-center gap-2"
                   >
                     Email Address *
                   </label>
@@ -195,7 +233,7 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400"
+                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400 transition-all duration-200"
                     placeholder="your.email@example.com"
                   />
                 </div>
@@ -204,7 +242,7 @@ export default function ContactPage() {
               <div>
                 <label
                   htmlFor="subject"
-                  className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2"
+                  className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2 flex items-center gap-2"
                 >
                   Subject *
                 </label>
@@ -214,7 +252,7 @@ export default function ContactPage() {
                   value={formData.subject}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
                 >
                   <option value="" className="dark:text-white">
                     Select a subject
@@ -240,7 +278,7 @@ export default function ContactPage() {
               <div>
                 <label
                   htmlFor="message"
-                  className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2"
+                  className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-2 flex items-center gap-2"
                 >
                   Message *
                 </label>
@@ -251,15 +289,16 @@ export default function ContactPage() {
                   onChange={handleChange}
                   required
                   rows={6}
-                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400 resize-none"
+                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent dark:bg-gray-700 dark:text-white placeholder-gray-400 resize-none transition-all duration-200"
                   placeholder="Tell us how we can help you..."
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-[#FF4FA1] text-white py-3 rounded-lg font-semibold hover:bg-[#00CFFF] transition-colors duration-200"
+                className="w-full bg-[#FF4FA1] text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-200 flex items-center justify-center gap-2"
               >
+                <FaPaperPlane />
                 Send Message
               </button>
             </form>
@@ -270,6 +309,9 @@ export default function ContactPage() {
       <section className="py-16 bg-white dark:bg-gray-800 border-t dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#00CFFF]/10 mb-4">
+              <FaMapMarkerAlt className="text-3xl text-[#00CFFF]" />
+            </div>
             <h2 className="text-3xl md:text-4xl font-bold dark:text-white mb-4">
               Visit Our Office
             </h2>

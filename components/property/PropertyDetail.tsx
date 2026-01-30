@@ -13,6 +13,10 @@ export default function PropertyDetail({ property }: { property: any }) {
   const propertyImages = property.images || [property.image];
   const hasMultipleImages = propertyImages.length > 1;
 
+  // Virtual Tour URL - You can replace this with your actual virtual tour URL
+  const virtualTourUrl =
+    property.virtualTourUrl || "https://example.com/virtual-tour";
+
   const getDurationText = () => {
     if (
       !property.acceptableDurations ||
@@ -65,7 +69,6 @@ export default function PropertyDetail({ property }: { property: any }) {
     setShowBookingForm(true);
   };
 
-  // Handle Contact functionality
   const handleContact = () => {
     const contactInfo = {
       hostName: "Property Owner",
@@ -79,22 +82,22 @@ export default function PropertyDetail({ property }: { property: any }) {
     );
   };
 
-  // Handle form submission
+  // Handler for virtual tour
+  const handleVirtualTour = () => {
+    window.open(virtualTourUrl, "_blank", "noopener,noreferrer");
+  };
+
   const handleFormSubmit = (formData: any) => {
-    // You can handle the form submission here
     console.log("Booking form submitted:", formData);
     console.log("Property:", property);
 
-    // Show success message
     alert(
       `Booking confirmed for ${property.name}! We'll send a confirmation email shortly.`,
     );
 
-    // Close the form
     setShowBookingForm(false);
   };
 
-  // Close modal when clicking outside
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       setShowBookingForm(false);
@@ -201,11 +204,48 @@ export default function PropertyDetail({ property }: { property: any }) {
           </div>
         )}
 
-        {/* Main Layout */}
+        <div className="mb-12">
+          <button
+            onClick={handleVirtualTour}
+            className="w-full flex items-center justify-center gap-3 bg-purple-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 group"
+          >
+            <svg
+              className="w-6 h-6 group-hover:scale-110 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+              />
+            </svg>
+            <span className="text-lg">Take a Virtual Tour</span>
+            <svg
+              className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              />
+            </svg>
+          </button>
+          <p className="text-center text-gray-500 dark:text-gray-400 text-sm mt-2">
+            Explore every corner of this property in detail
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Left Column */}
-          <div className="lg:col-span-2 space-y-10">
-            {/* Location + Rating */}
+          <div className="lg:col-span-3 space-y-10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <p className="text-gray-500 dark:text-gray-400 text-lg flex items-center gap-2">
                 📍{" "}
@@ -301,7 +341,6 @@ export default function PropertyDetail({ property }: { property: any }) {
               </div>
             </section>
 
-            {/* Description */}
             <section>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                 About this property
@@ -311,7 +350,6 @@ export default function PropertyDetail({ property }: { property: any }) {
               </p>
             </section>
 
-            {/* Amenities */}
             <section>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 Amenities
@@ -331,29 +369,21 @@ export default function PropertyDetail({ property }: { property: any }) {
               </ul>
             </section>
 
-            {/* Reviews Section */}
+            <BookingSection
+              price={property.price}
+              onBookNow={handleBookNow}
+              onContact={handleContact}
+            />
+
             <ReviewSection reviews={property.reviews || []} />
 
-            {/* Review Button */}
             <button className="w-full bg-gray-500 text-white py-3 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-300">
               Write a Review
             </button>
           </div>
-
-          {/* Right Column - Booking */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-28">
-              <BookingSection
-                price={property.price}
-                onBookNow={handleBookNow}
-                onContact={handleContact}
-              />
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Booking Form Modal */}
       {showBookingForm && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"

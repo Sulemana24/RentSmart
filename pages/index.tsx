@@ -117,11 +117,10 @@ export default function Home() {
 
   return (
     <div className="space-y-20 pb-20 bg-gray-50 dark:bg-gray-900">
-      {/* Hero Section */}
       <section className="relative pt-24 pb-32 md:pt-32 md:pb-40 overflow-hidden">
         <div className="absolute inset-0 bg-gray-900">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center opacity-40"></div>
-          <div className="absolute inset-0 bg-gray-900/70"></div>
+          <div className="absolute inset-0 dark:bg-gray-900/70"></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -167,7 +166,7 @@ export default function Home() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             {
               value: "200+",
@@ -251,7 +250,6 @@ export default function Home() {
 
           {featuredProperties.length > 0 && (
             <div className="relative">
-              {/* Desktop: Grid Layout with 3 Cards */}
               <div className="hidden lg:grid grid-cols-3 gap-8">
                 {[0, 1, 2].map((offset) => {
                   const index =

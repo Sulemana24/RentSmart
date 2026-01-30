@@ -48,9 +48,31 @@ export const signupUser = async (
   }
 };
 
-export const loginUser = async (email: string, password: string) => {
+export const loginUser = async (
+  email: string,
+  password: string,
+  selectedRole: "renter" | "homeowner" | "hostel" | "admin",
+) => {
   try {
     const userCred = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCred.user.uid;
+
+    const userSnap = await getDoc(doc(db, "users", uid));
+
+    if (!userSnap.exists()) {
+      await auth.signOut();
+      throw new Error("User profile not found");
+    }
+
+    const { role } = userSnap.data();
+
+    if (role !== selectedRole) {
+      await auth.signOut();
+      throw new Error(
+        `This account is registered as ${role}. You selected ${selectedRole}.`,
+      );
+    }
+
     return userCred.user;
   } catch (error: any) {
     if (

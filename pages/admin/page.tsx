@@ -1,44 +1,68 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { FiChevronDown } from "react-icons/fi";
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import Dashboard from "./components/Dashboard";
 import Properties from "./components/Properties";
-import AddProperty from "./components/AddProperty";
-import Bookings from "./components/Bookings";
 import Payments from "./components/Payments";
+import Bookings from "./components/Bookings";
+import Users from "./components/Users";
 import Messages from "./components/Messages";
 import Support from "./components/Support";
 import Settings from "./components/Settings";
-import { useToast } from "../../components/ToastProvider";
-import Footer from "./components/Footer";
 
-const HomeownerPage = () => {
-  const [activeSection, setActiveSection] = useState("dashboard");
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: string;
+}
 
+const AdminDashboard = () => {
+  const [activeSection, setActiveSection] = useState<string>("dashboard");
+  const [showMobileMenu, setShowMobileMenu] = useState<boolean>(false);
+  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [profileOpen, setProfileOpen] = useState<boolean>(false);
   const router = useRouter();
-  const { showToast } = useToast();
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)",
     ).matches;
+
     const initialDarkMode =
       savedTheme === "dark" || (!savedTheme && prefersDark);
-
     setDarkMode(initialDarkMode);
+
     if (initialDarkMode) {
       document.documentElement.classList.add("dark");
     }
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileButtonRef.current?.contains(event.target as Node)) {
+        return;
+      }
+
+      if (
+        profileOpen &&
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileOpen]);
 
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
@@ -53,22 +77,27 @@ const HomeownerPage = () => {
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("role");
+    localStorage.removeItem("adminData");
     setProfileOpen(false);
 
-    await signOut(auth);
+    router.push("/login");
 
-    localStorage.clear();
-    sessionStorage.clear();
-
-    showToast({
-      title: "Success",
-      message: "You have been logged out successfully!",
-      type: "success",
-    });
-
-    router.replace("/");
+    alert("Admin session ended successfully!");
   };
+
+  const menuItems: MenuItem[] = [
+    { id: "dashboard", label: "Dashboard", icon: "📊" },
+    { id: "properties", label: "Properties", icon: "🏠" },
+    { id: "payments", label: "Payments", icon: "💰" },
+    { id: "bookings", label: "Bookings", icon: "📅" },
+    { id: "users", label: "Users", icon: "👥" },
+    { id: "messages", label: "Messages", icon: "💬" },
+    { id: "support", label: "Support", icon: "🛟" },
+    { id: "settings", label: "Settings", icon: "⚙️" },
+  ];
 
   const renderSection = () => {
     switch (activeSection) {
@@ -76,12 +105,12 @@ const HomeownerPage = () => {
         return <Dashboard />;
       case "properties":
         return <Properties />;
-      case "add-property":
-        return <AddProperty />;
-      case "bookings":
-        return <Bookings />;
       case "payments":
         return <Payments />;
+      case "bookings":
+        return <Bookings />;
+      case "users":
+        return <Users />;
       case "messages":
         return <Messages />;
       case "support":
@@ -93,17 +122,6 @@ const HomeownerPage = () => {
     }
   };
 
-  const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: "Home" },
-    { id: "properties", label: "Properties", icon: "List" },
-    { id: "add-property", label: "Add Property", icon: "Plus" },
-    { id: "bookings", label: "Bookings", icon: "Calendar" },
-    { id: "payments", label: "Payments", icon: "DollarSign" },
-    { id: "messages", label: "Messages", icon: "MessageSquare" },
-    { id: "support", label: "Support", icon: "HelpCircle" },
-    { id: "settings", label: "Settings", icon: "Settings" },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header
@@ -112,30 +130,16 @@ const HomeownerPage = () => {
         profileOpen={profileOpen}
         setProfileOpen={setProfileOpen}
         handleLogout={handleLogout}
-        setActiveSection={setActiveSection}
+        profileDropdownRef={profileDropdownRef}
+        profileButtonRef={profileButtonRef}
+        setShowMobileMenu={setShowMobileMenu}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="md:hidden mb-4">
-          <button
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="w-full flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-center gap-2">
-              {menuItems.find((item) => item.id === activeSection)?.icon && (
-                <span>📊</span>
-              )}
-              <span className="font-medium text-gray-900 dark:text-white">
-                {menuItems.find((item) => item.id === activeSection)?.label}
-              </span>
-            </div>
-            <FiChevronDown
-              className={`transition-transform ${showMobileMenu ? "rotate-180" : ""}`}
-            />
-          </button>
-
-          {showMobileMenu && (
+        {showMobileMenu && (
+          <div className="md:hidden mb-4">
             <Sidebar
+              menuItems={menuItems}
               activeSection={activeSection}
               setActiveSection={(section) => {
                 setActiveSection(section);
@@ -143,12 +147,13 @@ const HomeownerPage = () => {
               }}
               isMobile={true}
             />
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="hidden md:block w-full md:w-64 flex-shrink-0">
             <Sidebar
+              menuItems={menuItems}
               activeSection={activeSection}
               setActiveSection={setActiveSection}
             />
@@ -157,9 +162,8 @@ const HomeownerPage = () => {
           <div className="flex-1">{renderSection()}</div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };
 
-export default HomeownerPage;
+export default AdminDashboard;

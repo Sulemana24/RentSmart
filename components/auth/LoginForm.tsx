@@ -58,7 +58,6 @@ export const saveUserToFirestore = async (
       createdAt: serverTimestamp(),
     };
 
-    // Add hostel-specific fields if needed
     if (role === "hostel") {
       userData.hostelName = hostelName;
     }
@@ -116,15 +115,20 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
       const { role } = userSnap.data();
 
-      if (role === "renter") {
-        router.push("/");
-      } else if (role === "homeowner") {
-        router.push("/homeowner/page");
-      } else if (role === "hostel") {
-        router.push("/student/page");
-      } else if (role === "admin") {
-        router.push("/admin");
+      const selectedRole = formData.userType;
+
+      if (role !== selectedRole) {
+        await auth.signOut();
+
+        throw new Error(
+          `This account is registered as ${role.replace("_", " ")}. You selected ${selectedRole.replace("_", " ")}.`,
+        );
       }
+
+      if (role === "renter") router.push("/");
+      else if (role === "homeowner") router.push("/homeowner/page");
+      else if (role === "hostel") router.push("/student/page");
+      else if (role === "admin") router.push("/admin");
 
       showToast({
         title: "Login Successful",
@@ -161,23 +165,21 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
       let role: string;
 
-      if (!userSnap.exists()) {
-        const userDoc = await saveUserToFirestore(user, formData.userType);
-        role = userDoc.data()!.role;
+      const selectedRole = formData.userType;
 
-        showToast({
-          title: "Account Created",
-          message: "Your account has been created successfully!",
-          type: "success",
-        });
+      if (!userSnap.exists()) {
+        const userDoc = await saveUserToFirestore(user, selectedRole);
+        role = userDoc.data()!.role;
       } else {
         role = userSnap.data().role;
 
-        showToast({
-          title: "Login Successful",
-          message: "Welcome back!",
-          type: "success",
-        });
+        if (role !== selectedRole) {
+          await auth.signOut();
+
+          throw new Error(
+            `This Google account is registered as ${role.replace("_", " ")}. You selected ${selectedRole.replace("_", " ")}.`,
+          );
+        }
       }
 
       if (role === "renter") router.replace("/");
