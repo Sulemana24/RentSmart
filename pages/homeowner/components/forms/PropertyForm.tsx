@@ -270,13 +270,13 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
     { icon: <GiHouseKeys className="w-5 h-5" />, name: "Smart Lock" },
   ];
 
-  const durationOptions = [1, 2, 3, 4, 5];
+  const durationOptions = [6, 12, 18, 24, 36, 48, 60];
 
   const StepProgress = () => (
     <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-      <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+      <div className="flex flex-col lg:flex-row items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex flex-col md:flex-row items-center gap-2">
             <FiHome className="w-7 h-7 text-blue-600" />
             Add New Property
           </h1>
@@ -285,7 +285,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
           </p>
         </div>
         <div className="mt-4 md:mt-0">
-          <span className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-medium">
+          <span className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-medium mt-3">
             <FiClock className="w-4 h-4 mr-2" />
             Step {activeStep} of {steps.length}
           </span>
@@ -316,7 +316,9 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   step.icon
                 )}
               </div>
-              <span className="text-sm font-medium">{step.name}</span>
+              <span className="text-sm hidden md:block font-medium">
+                {step.name}
+              </span>
             </button>
           ))}
         </div>
@@ -559,7 +561,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
         return (
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-3 mb-6">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <FiTag className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
@@ -574,7 +576,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
               </div>
 
               <div className="space-y-4">
-                <div className="flex gap-3">
+                <div className="flex flex-col md:flex-row gap-3">
                   <input
                     type="text"
                     id="categoryInput"
@@ -617,7 +619,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex flex-col md:flex-row items-center gap-3 mb-6">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <FiCheck className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
@@ -631,7 +633,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {allAmenities.map((amenity) => (
                   <button
                     key={amenity.name}
@@ -644,7 +646,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                     }`}
                   >
                     <div
-                      className={`p-2 rounded-lg ${selectedAmenities.includes(amenity.name) ? "bg-blue-100 dark:bg-blue-800/30" : "bg-gray-100 dark:bg-gray-600"}`}
+                      className={`hidden sm:block p-2 rounded-lg ${selectedAmenities.includes(amenity.name) ? "bg-blue-100 dark:bg-blue-800/30" : "bg-gray-100 dark:bg-gray-600"}`}
                     >
                       {amenity.icon}
                     </div>
@@ -660,7 +662,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
         return (
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex flex-col md:flex-row items-center gap-3 mb-6">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <FiImage className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
@@ -689,6 +691,9 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
 
                     <UploadButton
                       endpoint="imageUploader"
+                      content={{
+                        button: uploadingImages ? "Uploading..." : "Upload",
+                      }}
                       onClientUploadComplete={(res) => {
                         if (!res || !Array.isArray(res)) return;
 
@@ -701,7 +706,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                         console.error("Upload error:", error);
                         setUploadingImages(false);
                       }}
-                      className="ut-button:bg-blue-600 ut-button:text-white ut-button:hover:bg-blue-700 ut-button:px-6 ut-button:py-3 ut-button:rounded-xl ut-button:font-medium"
+                      className=" bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-colors"
                     />
 
                     {uploadingImages && (
@@ -761,8 +766,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+                <div className="flex flex-col md:flex-row items-center gap-3">
                   <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
                     <FiYoutube className="w-6 h-6 text-red-600 dark:text-red-400" />
                   </div>
@@ -778,7 +783,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <button
                   type="button"
                   onClick={() => setShowVideoUpload(!showVideoUpload)}
-                  className="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/40 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/40 transition-colors flex justify-center items-center mt-6 gap-2"
                 >
                   <FiYoutube className="w-4 h-4" />
                   {showVideoUpload ? "Hide" : "Add YouTube Link"}
@@ -800,7 +805,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                             onChange={(e) => setYoutubeUrl(e.target.value)}
                             placeholder="https://www.youtube.com/watch?v=..."
                             className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                            onKeyPress={(e) =>
+                            onKeyDown={(e) =>
                               e.key === "Enter" &&
                               (e.preventDefault(), addYoutubeLink())
                             }
@@ -925,7 +930,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
         return (
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex flex-col md:flex-row items-center gap-3 mb-6">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <FiClock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
@@ -939,13 +944,13 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {durationOptions.map((duration) => (
                   <button
                     key={duration}
                     type="button"
                     onClick={() => toggleDuration(duration)}
-                    className={`px-8 py-4 rounded-xl border transition-all duration-200 font-medium flex items-center gap-2 ${
+                    className={`px-8 py-4 rounded-xl border transition-all duration-200 font-medium flex items-center justify-center gap-2 ${
                       selectedDurations.includes(duration)
                         ? "bg-blue-600 text-white border-blue-600 shadow-sm"
                         : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -954,38 +959,9 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                     {selectedDurations.includes(duration) && (
                       <FiCheck className="w-4 h-4" />
                     )}
-                    {duration} {duration === 1 ? "Year" : "Years"}
+                    {duration} {duration === 1 ? "Month" : "Months"}
                   </button>
                 ))}
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                    <FiStar className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      Featured Property
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                      Feature this property prominently on the homepage.
-                      Featured properties get 3x more views and bookings.
-                    </p>
-                  </div>
-                </div>
-
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={featured}
-                    onChange={(e) => setFeatured(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-16 h-8 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-yellow-500"></div>
-                </label>
               </div>
             </div>
           </div>
@@ -999,9 +975,9 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
   const NavigationButtons = () => (
     <div className=" bottom-6 mt-8">
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-xl">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col items-center justify-between gap-4">
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <span className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full">
                 <FiImage className="w-3.5 h-3.5" />
                 {uploadedImages.length} images
@@ -1021,7 +997,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {activeStep > 1 && (
               <button
                 type="button"
