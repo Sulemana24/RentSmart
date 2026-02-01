@@ -37,6 +37,7 @@ import {
   FiYoutube,
   FiExternalLink,
   FiLink,
+  FiVideo,
 } from "react-icons/fi";
 import {
   GiWashingMachine,
@@ -64,13 +65,13 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
   const [selectedDurations, setSelectedDurations] = useState<number[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [youtubeLinks, setYoutubeLinks] = useState<string[]>([]);
+  const [uploadedVideos, setUploadedVideos] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingVideos, setUploadingVideos] = useState(false);
   const [featured, setFeatured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const [showVideoUpload, setShowVideoUpload] = useState(false);
-  const [youtubeUrl, setYoutubeUrl] = useState("");
   const { showToast } = useToast();
 
   const steps = [
@@ -104,6 +105,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
     if (!formObject.description) errors.push("Description is required");
     if (uploadedImages.length === 0)
       errors.push("At least one image is required");
+    if (uploadedVideos.length === 0)
+      errors.push("At least one video is required");
     if (categories.length === 0)
       errors.push("At least one category is required");
     if (selectedDurations.length === 0)
@@ -142,7 +145,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
       amenities: selectedAmenities,
       acceptableDurations: selectedDurations,
       images: uploadedImages,
-      youtubeLinks,
+      videos: uploadedVideos,
       featured,
       beds: parseInt(formObject.beds as string) || 0,
       washrooms: parseInt(formObject.washrooms as string) || 0,
@@ -154,7 +157,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
       discount: formObject.discount || "",
       reviews: [],
       image: uploadedImages[0] || "",
-      hasVirtualTour: youtubeLinks.length > 0,
+      hasVirtualTour: uploadedVideos.length > 0,
       createdAt: serverTimestamp(),
       hostId: auth.currentUser?.uid || "",
     };
@@ -207,44 +210,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const removeYoutubeLink = (index: number) => {
-    setYoutubeLinks((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const addYoutubeLink = () => {
-    if (!youtubeUrl.trim()) return;
-
-    const videoId = extractYoutubeId(youtubeUrl);
-    if (!videoId) {
-      alert("Please enter a valid YouTube URL");
-      return;
-    }
-
-    const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-    setYoutubeLinks((prev) => [...prev, watchUrl]);
-    setYoutubeUrl("");
-  };
-
-  const extractYoutubeId = (url: string): string | null => {
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/e\/)([^#\&\?]*).*/,
-      /^([a-zA-Z0-9_-]{11})$/,
-    ];
-
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match && match[1]) {
-        return match[1];
-      }
-    }
-    return null;
-  };
-
-  const getYoutubeThumbnail = (url: string): string => {
-    const videoId = extractYoutubeId(url);
-    if (!videoId) return "";
-    return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  const removeVideo = (index: number) => {
+    setUploadedVideos((prev) => prev.filter((_, i) => i !== index));
   };
 
   const allAmenities = [
@@ -271,6 +238,52 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
   ];
 
   const durationOptions = [6, 12, 18, 24, 36, 48, 60];
+
+  function isValidYouTubeUrl(url: string) {
+    return url.includes("youtube.com/watch") || url.includes("youtu.be/");
+  }
+
+  function convertToEmbedUrl(url: string) {
+    if (url.includes("youtu.be/")) {
+      const id = url.split("youtu.be/")[1];
+      return `https://www.youtube.com/embed/${id}`;
+    }
+
+    if (url.includes("watch?v=")) {
+      const id = new URL(url).searchParams.get("v");
+      return `https://www.youtube.com/embed/${id}`;
+    }
+
+    return url;
+  }
+
+  async function uploadVideoToYouTube(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingVideos(true);
+
+    const form = new FormData();
+    form.append("video", file);
+
+    const res = await fetch("/api/youtube/upload", {
+      method: "POST",
+      body: form,
+    });
+
+    const data = await res.json();
+
+    if (data.url) {
+      setUploadedVideos((prev) => [...prev, data.url]);
+    } else {
+      showToast({
+        title: "Upload failed",
+        message: "Could not upload to YouTube",
+      });
+    }
+
+    setUploadingVideos(false);
+  }
 
   const StepProgress = () => (
     <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -692,21 +705,24 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                     <UploadButton
                       endpoint="imageUploader"
                       content={{
-                        button: uploadingImages ? "Uploading..." : "Upload",
-                      }}
-                      onClientUploadComplete={(res) => {
-                        if (!res || !Array.isArray(res)) return;
-
-                        const newImages = res.map((file) => file.url);
-                        setUploadedImages((prev) => [...prev, ...newImages]);
-                        setUploadingImages(false);
+                        button: uploadingImages
+                          ? "Uploading..."
+                          : "Upload Images",
                       }}
                       onUploadBegin={() => setUploadingImages(true)}
-                      onUploadError={(error: Error) => {
-                        console.error("Upload error:", error);
+                      onClientUploadComplete={(res) => {
+                        if (!res) return;
+                        const urls = res.map((file) => file.url);
+                        setUploadedImages((prev) => [...prev, ...urls]);
                         setUploadingImages(false);
                       }}
-                      className=" bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-colors"
+                      onUploadError={(err) => {
+                        setUploadingImages(false);
+                        showToast({
+                          title: "Image Upload Failed",
+                          message: err.message,
+                        });
+                      }}
                     />
 
                     {uploadingImages && (
@@ -768,151 +784,182 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex flex-col md:flex-row items-center justify-between mb-6">
                 <div className="flex flex-col md:flex-row items-center gap-3">
-                  <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                    <FiYoutube className="w-6 h-6 text-red-600 dark:text-red-400" />
+                  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <FiVideo className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      YouTube Virtual Tour (Optional)
+                      Property Videos
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400">
-                      Add YouTube links for property walkthrough videos
+                      Upload property walkthrough or tour videos
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowVideoUpload(!showVideoUpload)}
-                  className="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/40 transition-colors flex justify-center items-center mt-6 gap-2"
+                  className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors flex justify-center items-center mt-6 gap-2"
                 >
-                  <FiYoutube className="w-4 h-4" />
-                  {showVideoUpload ? "Hide" : "Add YouTube Link"}
+                  <FiVideo className="w-4 h-4" />
+                  {showVideoUpload ? "Hide" : "Add Videos"}
                 </button>
               </div>
 
               {showVideoUpload && (
                 <div className="space-y-6">
-                  <div className="border-2 border-dashed border-red-200 dark:border-red-700 rounded-2xl p-6 bg-red-50 dark:bg-red-900/10">
-                    <div className="flex flex-col md:flex-row gap-4">
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          YouTube Video URL
-                        </label>
-                        <div className="flex gap-3">
-                          <input
-                            type="url"
-                            value={youtubeUrl}
-                            onChange={(e) => setYoutubeUrl(e.target.value)}
-                            placeholder="https://www.youtube.com/watch?v=..."
-                            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                            onKeyDown={(e) =>
-                              e.key === "Enter" &&
-                              (e.preventDefault(), addYoutubeLink())
-                            }
-                          />
-                          <button
-                            type="button"
-                            onClick={addYoutubeLink}
-                            className="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium flex items-center gap-2"
-                          >
-                            <FiPlus className="w-4 h-4" />
-                            Add Link
-                          </button>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
-                          <FiLink className="w-3 h-3" />
-                          Supports: youtube.com/watch?v=..., youtu.be/...,
-                          youtube.com/embed/...
+                  <div className="border-2 border-dashed border-purple-200 dark:border-purple-700 rounded-2xl p-6 bg-purple-50 dark:bg-purple-900/10">
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <FiUpload className="w-12 h-12 text-purple-400 dark:text-purple-500" />
+                      <div>
+                        <p className="text-gray-700 dark:text-gray-300 font-medium mb-1">
+                          Upload Property Videos
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          MP4, MOV, WEBM up to 50MB • Max 1 video
                         </p>
                       </div>
+
+                      <div className="flex flex-col gap-4 w-full max-w-md">
+                        <input
+                          type="url"
+                          placeholder="Paste YouTube link"
+                          className="w-full px-4 py-3 border border-purple-200 dark:border-purple-700 rounded-xl"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              const url = (
+                                e.target as HTMLInputElement
+                              ).value.trim();
+                              if (!isValidYouTubeUrl(url)) return;
+
+                              setUploadedVideos((prev) => [...prev, url]);
+                              (e.target as HTMLInputElement).value = "";
+                            }
+                          }}
+                        />
+
+                        <div className="flex items-center gap-3 text-sm text-gray-500">
+                          <div className="flex-1 h-px bg-gray-300" />
+                          OR
+                          <div className="flex-1 h-px bg-gray-300" />
+                        </div>
+
+                        <input
+                          type="file"
+                          accept="video/*"
+                          onChange={uploadVideoToYouTube}
+                          className="hidden"
+                          id="youtubeUpload"
+                        />
+
+                        <label
+                          htmlFor="youtubeUpload"
+                          className="cursor-pointer px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                        >
+                          <FiYoutube className="w-5 h-5" />
+                          Upload directly to YouTube
+                        </label>
+                      </div>
+
+                      {uploadingVideos && (
+                        <div className="text-sm text-purple-600 dark:text-purple-400 font-medium flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                          Uploading video...
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {youtubeLinks.length > 0 && (
+                  {uploadedVideos.length > 0 && (
                     <div>
                       <h4 className="font-medium text-gray-900 dark:text-white mb-4">
-                        YouTube Videos ({youtubeLinks.length})
+                        Uploaded Videos ({uploadedVideos.length})
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {youtubeLinks.map((url, index) => {
-                          const videoId = extractYoutubeId(url);
-                          const thumbnailUrl = getYoutubeThumbnail(url);
-                          const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                        {uploadedVideos.map((url, index) => {
+                          const videoName = `Property Tour ${index + 1}`;
+                          const videoExtension =
+                            url.split(".").pop()?.toUpperCase() || "VIDEO";
 
                           return (
                             <div key={index} className="relative group">
                               <div className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
-                                <div className="aspect-video relative">
-                                  {thumbnailUrl ? (
-                                    <>
-                                      <img
-                                        src={thumbnailUrl}
-                                        alt={`YouTube thumbnail ${index + 1}`}
-                                        className="w-full h-full object-cover"
-                                      />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-center">
-                                        <div className="p-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors">
-                                          <FiPlay className="w-6 h-6" />
-                                        </div>
-                                      </div>
+                                <div className="aspect-video relative bg-gradient-to-br from-purple-900/20 to-gray-900/20">
+                                  <div className="w-full h-full flex flex-col items-center justify-center p-8">
+                                    <FiVideo className="w-12 h-12 text-purple-400 dark:text-purple-300 mb-4" />
+                                    <div className="text-center">
+                                      <p className="font-medium text-gray-900 dark:text-white">
+                                        {videoName}
+                                      </p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        Click to preview • {videoExtension}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="p-4 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors cursor-pointer opacity-0 group-hover:opacity-100">
+                                      <FiPlay className="w-8 h-8" />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="p-4 bg-white dark:bg-gray-900">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                        Video {index + 1}
+                                      </span>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                                        {url.split("/").pop()}
+                                      </p>
+                                    </div>
+                                    <div className="flex gap-2">
                                       <a
                                         href={url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="absolute top-2 right-2 p-2 bg-black/70 text-white rounded-lg hover:bg-black transition-colors"
+                                        className="p-1.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                                        title="View full video"
                                       >
                                         <FiExternalLink className="w-4 h-4" />
                                       </a>
-                                    </>
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                                      <FiYoutube className="w-12 h-12 text-gray-400" />
+                                      <button
+                                        type="button"
+                                        onClick={() => removeVideo(index)}
+                                        className="p-1.5 bg-red-100 dark:bg-red-900/20 text-red-500 hover:text-red-600 transition-colors rounded-lg"
+                                        title="Remove video"
+                                      >
+                                        <FiTrash2 className="w-4 h-4" />
+                                      </button>
                                     </div>
-                                  )}
-                                </div>
-                                <div className="p-4">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                      Virtual Tour #{index + 1}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => removeYoutubeLink(index)}
-                                      className="p-1.5 text-red-500 hover:text-red-600 transition-colors"
-                                    >
-                                      <FiTrash2 className="w-4 h-4" />
-                                    </button>
                                   </div>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
-                                    {url}
-                                  </p>
                                 </div>
                               </div>
-                              <div className="absolute top-2 left-2 px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg shadow-sm flex items-center gap-1">
-                                <FiYoutube className="w-3 h-3" />
-                                YouTube
+
+                              <div className="absolute top-2 left-2 px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg shadow-sm flex items-center gap-1">
+                                <FiVideo className="w-3 h-3" />
+                                VIDEO
                               </div>
                             </div>
                           );
                         })}
                       </div>
 
-                      {youtubeLinks.length > 0 && (
+                      {uploadedVideos.length > 0 && (
                         <div className="mt-6">
                           <h4 className="font-medium text-gray-900 dark:text-white mb-4">
                             Video Preview
                           </h4>
-                          <div className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                          <div className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-black">
                             <iframe
-                              src={`https://www.youtube.com/embed/${extractYoutubeId(youtubeLinks[0])}`}
+                              src={convertToEmbedUrl(uploadedVideos[0])}
                               className="w-full h-full"
-                              title="Virtual Tour Preview"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                               allowFullScreen
                             />
                           </div>
-                          <p className="text-sm text-red-600 dark:text-red-400 mt-3 flex items-center gap-2">
-                            <FiYoutube className="w-4 h-4" />
+                          <p className="text-sm text-purple-600 dark:text-purple-400 mt-3 flex items-center gap-2">
+                            <FiVideo className="w-4 h-4" />
                             Virtual tours can increase booking rates by up to
                             40%
                           </p>
@@ -982,9 +1029,9 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <FiImage className="w-3.5 h-3.5" />
                 {uploadedImages.length} images
               </span>
-              <span className="flex items-center gap-2 px-3 py-1.5 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full">
-                <FiYoutube className="w-3.5 h-3.5" />
-                {youtubeLinks.length} videos
+              <span className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-full">
+                <FiVideo className="w-3.5 h-3.5" />
+                {uploadedVideos.length} videos
               </span>
               <span className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full">
                 <FiCheck className="w-3.5 h-3.5" />
@@ -1077,12 +1124,12 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
       <input
         type="hidden"
         name="hasVirtualTour"
-        value={youtubeLinks.length > 0 ? "true" : "false"}
+        value={uploadedVideos.length > 0 ? "true" : "false"}
       />
       <input
         type="hidden"
-        name="youtubeLinks"
-        value={JSON.stringify(youtubeLinks)}
+        name="videos"
+        value={JSON.stringify(uploadedVideos)}
       />
     </form>
   );
