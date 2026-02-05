@@ -1,9 +1,25 @@
-import {
-  generateUploadButton,
-  generateUploadDropzone,
-} from "@uploadthing/react";
+import { createUploadthing, type FileRouter } from "uploadthing/next";
 
-import type { OurFileRouter } from "@/pages/api/uploadthing/core";
+const f = createUploadthing();
 
-export const UploadButton = generateUploadButton<OurFileRouter>();
-export const UploadDropzone = generateUploadDropzone<OurFileRouter>();
+export const ourFileRouter = {
+  productImage: f({
+    image: {
+      maxFileSize: "4MB",
+      maxFileCount: 1,
+    },
+  }).onUploadComplete(({ file }) => {
+    return { url: file.ufsUrl };
+  }),
+
+  propertyImages: f({
+    image: {
+      maxFileSize: "4MB",
+      maxFileCount: 3,
+    },
+  }).onUploadComplete(({ file }) => {
+    return { url: file.ufsUrl };
+  }),
+} satisfies FileRouter;
+
+export type OurFileRouter = typeof ourFileRouter;
