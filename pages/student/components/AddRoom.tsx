@@ -66,6 +66,7 @@ const AddRoom: React.FC = () => {
               "TV",
               "Fridge",
               "Balcony",
+              "Free Cleaning",
             ].map((feature) => (
               <label key={feature} className="flex items-center gap-2">
                 <input type="checkbox" className="rounded" />

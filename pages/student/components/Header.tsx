@@ -54,9 +54,7 @@ const Header: React.FC<HeaderProps> = ({
             const data = userDoc.data() as HostelData;
             setHostelData(data);
 
-            // Set user initials for avatar
             if (data.hostelName) {
-              // Use first two letters of hostel name
               setUserInitials(
                 data.hostelName
                   .split(" ")
@@ -66,7 +64,6 @@ const Header: React.FC<HeaderProps> = ({
                   .slice(0, 2),
               );
             } else if (data.firstName && data.lastName) {
-              // Use first letters of first and last name
               setUserInitials(
                 `${data.firstName[0]}${data.lastName[0]}`.toUpperCase(),
               );
@@ -78,13 +75,12 @@ const Header: React.FC<HeaderProps> = ({
       } else {
         setUser(null);
         setHostelData(null);
-        // Redirect to login if not authenticated
+
         router.push("/");
       }
       setLoading(false);
     });
 
-    // Cleanup subscription
     return () => unsubscribe();
   }, [router]);
 
@@ -179,7 +175,6 @@ const Header: React.FC<HeaderProps> = ({
               <FiBell className="w-5 h-5" />
             </button>
 
-            {/* Profile Dropdown */}
             <div className="relative">
               <button
                 ref={profileButtonRef}
