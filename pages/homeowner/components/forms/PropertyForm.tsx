@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { UploadButton } from "@/lib/uploadthing";
+import { UploadButton } from "@uploadthing/react";
+import type { OurFileRouter } from "@/lib/uploadthing";
+
 import {
   FiUpload,
   FiTrash2,
@@ -36,7 +38,6 @@ import {
   FiFileText,
   FiYoutube,
   FiExternalLink,
-  FiLink,
   FiVideo,
 } from "react-icons/fi";
 import {
@@ -53,14 +54,15 @@ import {
   MdBathroom,
   MdBed,
 } from "react-icons/md";
+import { TbFridge } from "react-icons/tb";
 import { useToast } from "../../../../components/ToastProvider";
+import { IoBedOutline } from "react-icons/io5";
 
 interface PropertyFormProps {
   onSubmit: (formData: any) => void;
 }
 
 const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
-  const [hostName, setHostName] = useState("");
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [selectedDurations, setSelectedDurations] = useState<number[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -73,6 +75,21 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
   const [activeStep, setActiveStep] = useState(1);
   const [showVideoUpload, setShowVideoUpload] = useState(false);
   const { showToast } = useToast();
+  const [categoryInput, setCategoryInput] = useState("");
+
+  const [form, setForm] = useState({
+    name: "",
+    host: "",
+    price: "",
+    beds: "",
+    washrooms: "",
+    agentFeePercentage: "",
+    walkingFee: "",
+    discount: "",
+    state: "",
+    city: "",
+    description: "",
+  });
 
   const steps = [
     { id: 1, name: "Basic Info", icon: <FiEdit3 className="w-5 h-5" /> },
@@ -90,7 +107,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (userSnap.exists()) {
           const data = userSnap.data();
-          setHostName(`${data.firstName || ""} ${data.lastName || ""}`);
+          setForm((prev) => ({
+            ...prev,
+            host: `${data.firstName || ""} ${data.lastName || ""}`,
+          }));
         }
       } catch (error) {}
     };
@@ -130,8 +150,13 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
     e.preventDefault();
     setLoading(true);
     const formData = new FormData(e.target as HTMLFormElement);
-    const formObject = Object.fromEntries(formData);
 
+    const formObject: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      if (typeof value === "string") {
+        formObject[key] = value;
+      }
+    });
     const errors = validateForm(formObject);
     if (errors.length > 0) {
       alert(errors.join("\n"));
@@ -139,34 +164,41 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
       return;
     }
 
-    const completeData = {
-      ...formObject,
-      category: categories,
-      amenities: selectedAmenities,
-      acceptableDurations: selectedDurations,
-      images: uploadedImages,
-      videos: uploadedVideos,
-      featured,
-      beds: parseInt(formObject.beds as string) || 0,
-      washrooms: parseInt(formObject.washrooms as string) || 0,
-      price: parseInt(formObject.price as string) || 0,
-      agentFeePercentage:
-        parseInt(formObject.agentFeePercentage as string) || 0,
-      walkingFee: parseInt(formObject.walkingFee as string) || 0,
+    const propertyData = {
+      id: crypto.randomUUID(),
+      name: formObject.name,
+      address: {
+        state: formObject.state,
+        city: formObject.city,
+        country: "Ghana",
+      },
       rating: 0,
-      discount: formObject.discount || "",
-      reviews: [],
+      category: categories,
+      price: parseInt(formObject.price) || 0,
+      agentFeePercentage: parseInt(formObject.agentFeePercentage) || 0,
+      walkingFee: parseInt(formObject.walkingFee) || 0,
+      acceptableDurations: selectedDurations,
+      beds: parseInt(formObject.beds) || 0,
       image: uploadedImages[0] || "",
-      hasVirtualTour: uploadedVideos.length > 0,
+      images: uploadedImages,
+      discount: formObject.discount || "",
+      host: formObject.host,
+      featured,
+      description: formObject.description,
+      amenities: selectedAmenities,
+      reviews: [],
       createdAt: serverTimestamp(),
       hostId: auth.currentUser?.uid || "",
+      videos: uploadedVideos,
+      washrooms: parseInt(formObject.washrooms) || 0,
+      hasVirtualTour: uploadedVideos.length > 0,
     };
 
     try {
-      const newDocRef = doc(db, "properties", crypto.randomUUID());
-      await setDoc(newDocRef, completeData);
+      const newDocRef = doc(db, "properties", propertyData.id);
+      await setDoc(newDocRef, propertyData);
       alert("Property added successfully!");
-      if (onSubmit) onSubmit(completeData);
+      if (onSubmit) onSubmit(propertyData);
     } catch (error: any) {
       showToast({
         title: "Property Creation Failed",
@@ -195,11 +227,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
   };
 
   const addCategory = () => {
-    const input = document.getElementById("categoryInput") as HTMLInputElement;
-    if (input.value.trim()) {
-      setCategories((prev) => [...prev, input.value.trim()]);
-      input.value = "";
-    }
+    if (!categoryInput.trim()) return;
+
+    setCategories((prev) => [...prev, categoryInput.trim()]);
+    setCategoryInput("");
   };
 
   const removeCategory = (index: number) => {
@@ -216,8 +247,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
 
   const allAmenities = [
     { icon: <FiWifi className="w-5 h-5" />, name: "Free WiFi" },
+    { icon: <TbFridge className="w-5 h-5" />, name: "Refrigerator" },
+    { icon: <IoBedOutline className="w-5 h-5" />, name: "Comfortable Bed" },
     { icon: <MdPool className="w-5 h-5" />, name: "Pool" },
-    { icon: <FiThermometer className="w-5 h-5" />, name: "Air Conditioning" },
+    { icon: <FiThermometer className="w-5 h-5" />, name: "AC" },
     { icon: <FiCoffee className="w-5 h-5" />, name: "Kitchen" },
     { icon: <FiTruck className="w-5 h-5" />, name: "Free Parking" },
     { icon: <FiZap className="w-5 h-5" />, name: "Gym" },
@@ -383,8 +416,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   name="host"
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Loading..."
-                  value={hostName}
-                  onChange={(e) => setHostName(e.target.value)}
+                  value={form.host}
+                  onChange={(e) => setForm({ ...form, host: e.target.value })}
                   required
                 />
                 {loading && (
@@ -441,6 +474,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   placeholder="3"
                   required
                   min="0"
+                  id="quantity"
                 />
               </div>
 
@@ -547,6 +581,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <input
                   type="text"
                   name="city"
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Accra"
                   required
@@ -575,8 +611,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex flex-col md:flex-row items-center justify-center gap-3 mb-6">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <FiTag className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <div className="hidden md:block p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <FiTag className=" w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -592,13 +628,18 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <div className="flex flex-col md:flex-row gap-3">
                   <input
                     type="text"
-                    id="categoryInput"
+                    value={categoryInput}
+                    onChange={(e) => setCategoryInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCategory();
+                      }
+                    }}
                     className="flex-1 px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="Add a category or tag (e.g., Luxury Villa, Pool, Free Parking)"
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && (e.preventDefault(), addCategory())
-                    }
                   />
+
                   <button
                     type="button"
                     onClick={addCategory}
@@ -633,7 +674,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
 
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex flex-col md:flex-row items-center gap-3 mb-6">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <div className="hidden md:blockp-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <FiCheck className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
@@ -702,26 +743,27 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                       </p>
                     </div>
 
-                    <UploadButton
-                      endpoint="imageUploader"
-                      content={{
-                        button: uploadingImages
-                          ? "Uploading..."
-                          : "Upload Images",
-                      }}
+                    <UploadButton<OurFileRouter, "propertyImages">
+                      endpoint="propertyImages"
                       onUploadBegin={() => setUploadingImages(true)}
                       onClientUploadComplete={(res) => {
-                        if (!res) return;
-                        const urls = res.map((file) => file.url);
-                        setUploadedImages((prev) => [...prev, ...urls]);
                         setUploadingImages(false);
+                        if (!res) return;
+
+                        const urls = res.map((f) => f.url);
+
+                        setUploadedImages((prev) => [...prev, ...urls]);
                       }}
-                      onUploadError={(err) => {
+                      onUploadError={(error) => {
                         setUploadingImages(false);
                         showToast({
-                          title: "Image Upload Failed",
-                          message: err.message,
+                          title: "Image upload failed",
+                          message: error.message,
                         });
+                      }}
+                      appearance={{
+                        button: "bg-blue-600 text-white",
+                        allowedContent: "text-gray-500",
                       }}
                     />
 
