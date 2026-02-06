@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
     "@uploadthing/react": "^7.3.3",
     "axios": "^1.13.1",
     "date-fns": "^4.1.0",
