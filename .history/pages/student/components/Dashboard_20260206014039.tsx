@@ -19,14 +19,11 @@ import {
 } from "react-icons/fi";
 
 interface DashboardProps {
-  hostelName?: string; // Prop passed from HostelPage
+  hostelName?: string; // Prop to take the logged-in hostel name
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ hostelName }) => {
+const Dashboard: React.FC<DashboardProps> = ({ hostelName = "Royal Heights Hostel" }) => {
   const [greeting, setGreeting] = useState("Welcome back");
-  
-  // Use the passed name, or show a placeholder while loading/if missing
-  const displayName = hostelName || "Royal Heights Hostel";
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -81,7 +78,7 @@ const Dashboard: React.FC<DashboardProps> = ({ hostelName }) => {
           </button>
           <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#00CFFF] to-[#FF4FA1] p-0.5">
             <div className="h-full w-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center font-bold text-xs">
-              {displayName.substring(0, 2).toUpperCase()}
+              AD
             </div>
           </div>
         </div>
@@ -93,7 +90,7 @@ const Dashboard: React.FC<DashboardProps> = ({ hostelName }) => {
           <div className="flex items-center gap-2">
             <div className="w-2 h-8 bg-[#00CFFF] rounded-full" />
             <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-              {displayName}
+              {hostelName}
             </h1>
           </div>
           <p className="text-sm text-gray-500 ml-4 font-medium">
@@ -187,7 +184,7 @@ const Dashboard: React.FC<DashboardProps> = ({ hostelName }) => {
           </div>
         </div>
 
-        {/* Right Column */}
+        {/* Right Column: Actions & Occupancy */}
         <div className="space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
             <h3 className="font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
@@ -212,6 +209,7 @@ const Dashboard: React.FC<DashboardProps> = ({ hostelName }) => {
             </div>
           </div>
 
+          {/* New Feature: Live Occupancy Visualizer */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
             <div className="flex items-center justify-between mb-4">
                <h3 className="font-bold text-gray-900 dark:text-white text-sm">Occupancy Rate</h3>
@@ -219,16 +217,25 @@ const Dashboard: React.FC<DashboardProps> = ({ hostelName }) => {
             </div>
             <div className="relative pt-1">
               <div className="flex mb-2 items-center justify-between">
-                <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-purple-600 bg-purple-200">High</span>
-                <span className="text-xs font-bold inline-block text-purple-600">86%</span>
+                <div>
+                  <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-purple-600 bg-purple-200">
+                    High
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold inline-block text-purple-600">
+                    86%
+                  </span>
+                </div>
               </div>
               <div className="overflow-hidden h-2 mb-4 text-xs flex rounded-full bg-purple-100 dark:bg-gray-700">
-                <div style={{ width: "86%" }} className="flex flex-col text-center whitespace-nowrap text-white justify-center bg-purple-500"></div>
+                <div style={{ width: "86%" }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-purple-500"></div>
               </div>
-              <p className="text-[10px] text-gray-400 font-medium">6 rooms currently undergoing maintenance or vacant.</p>
+              <p className="text-[10px] text-gray-400 font-medium leading-tight">6 rooms currently undergoing maintenance or vacant.</p>
             </div>
           </div>
 
+          {/* Revenue Target Card */}
           <div className="bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-black rounded-2xl p-6 text-white shadow-xl overflow-hidden relative group">
             <div className="relative z-10">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1">Target Achievement</p>
@@ -236,7 +243,7 @@ const Dashboard: React.FC<DashboardProps> = ({ hostelName }) => {
               <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
                 <div className="h-full bg-[#00CFFF] w-[65%] rounded-full shadow-[0_0_15px_rgba(0,207,255,0.8)] transition-all duration-1000" />
               </div>
-              <p className="text-[10px] text-gray-400 mt-3 font-medium">₵7.5k away from monthly goal.</p>
+              <p className="text-[10px] text-gray-400 mt-3 font-medium leading-relaxed">Keep going! You're ₵7.5k away from your monthly goal.</p>
             </div>
             <FiTrendingUp className="absolute -right-2 -bottom-2 text-white/5 group-hover:text-white/10 transition-colors" size={120} />
           </div>

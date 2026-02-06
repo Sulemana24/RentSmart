@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   FiSearch,
   FiFilter,
@@ -8,12 +8,11 @@ import {
   FiEdit,
   FiTrash2,
   FiUser,
+  FiPlus,
   FiX,
   FiCheckCircle,
-  FiChevronLeft,
-  FiChevronRight,
-  FiChevronsLeft,
-  FiChevronsRight,
+  FiMapPin,
+  FiTag,
 } from "react-icons/fi";
 
 // --- Interfaces ---
@@ -61,9 +60,6 @@ const Rooms: React.FC = () => {
     { id: 2, roomNumber: "102", type: "Double Room", status: "Available", price: "₵500/month", student: "Vacant", floor: "1st", lastCleaned: "2024-03-21" },
     { id: 3, roomNumber: "103", type: "Single Room", status: "Maintenance", price: "₵300/month", student: "N/A", floor: "1st", lastCleaned: "2024-03-15" },
     { id: 4, roomNumber: "201", type: "Triple Room", status: "Occupied", price: "₵700/month", student: "Group (3 students)", floor: "2nd", lastCleaned: "2024-03-19" },
-    { id: 5, roomNumber: "202", type: "Single Room", status: "Available", price: "₵300/month", student: "Vacant", floor: "2nd", lastCleaned: "2024-03-22" },
-    { id: 6, roomNumber: "301", type: "Double Room", status: "Occupied", price: "₵500/month", student: "Ama Serwaa", floor: "3rd", lastCleaned: "2024-03-20" },
-    { id: 7, roomNumber: "302", type: "Single Room", status: "Maintenance", price: "₵300/month", student: "N/A", floor: "3rd", lastCleaned: "2024-03-18" },
   ];
 
   const [rooms, setRooms] = useState<Room[]>(initialRooms);
@@ -71,10 +67,8 @@ const Rooms: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterType, setFilterType] = useState("All");
-  
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const itemsPerPage = 5;
 
   const [activeModal, setActiveModal] = useState<"view" | "edit" | "delete" | "add" | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
@@ -82,11 +76,6 @@ const Rooms: React.FC = () => {
     roomNumber: "", type: "Single Room", status: "Available", price: "", student: "Vacant", floor: "1st", lastCleaned: new Date().toISOString().split('T')[0]
   });
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filterStatus, filterType, itemsPerPage]);
 
   const addToast = (text: string, type: ToastMessage["type"] = "success") => {
     const id = Date.now();
@@ -208,11 +197,10 @@ const Rooms: React.FC = () => {
           </div>
         )}
 
-        {/* --- Table Content (Mobile/Desktop) --- */}
+        {/* --- Mobile: Card List / Desktop: Table --- */}
         <div className="md:hidden space-y-4">
             {currentData.length > 0 ? currentData.map((room) => (
                 <div key={room.id} className="p-5 border border-gray-100 dark:border-gray-700 rounded-2xl space-y-4 bg-white dark:bg-gray-800/50 shadow-sm">
-                    {/* ... (Mobile card content same as before) */}
                     <div className="flex justify-between items-start">
                         <div>
                             <h3 className="font-black text-lg dark:text-white">Room {room.roomNumber}</h3>
@@ -254,6 +242,7 @@ const Rooms: React.FC = () => {
             )}
         </div>
 
+        {/* --- Desktop Table View --- */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
@@ -309,94 +298,42 @@ const Rooms: React.FC = () => {
           </table>
         </div>
 
-        {/* --- Enhanced Pagination Bar --- */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
-          
-          {/* Rows Per Page Selector */}
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Show Rows</span>
-            <select 
-              value={itemsPerPage}
-              onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-[#00CFFF]/30"
+        {/* --- Responsive Pagination --- */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Page {currentPage} of {totalPages || 1}</p>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              className="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-30 transition-all shrink-0"
             >
-              {[5, 10, 20, 50].map(val => <option key={val} value={val}>{val}</option>)}
-            </select>
+              Prev
+            </button>
+            <div className="flex gap-1.5">
+              {[...Array(totalPages)].map((_, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-9 h-9 rounded-xl text-xs font-black transition-all shrink-0 ${currentPage === i + 1 ? 'bg-[#00CFFF] text-white shadow-lg shadow-[#00CFFF]/20' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <button 
+              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              className="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-30 transition-all shrink-0"
+            >
+              Next
+            </button>
           </div>
-
-          {/* Navigation Controls */}
-          <div className="flex items-center gap-2">
-            {/* First/Prev Icons */}
-            <div className="flex gap-1 mr-2">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(1)}
-                className="p-2 text-gray-400 hover:text-[#00CFFF] disabled:opacity-20 transition-all"
-                title="First Page"
-              >
-                <FiChevronsLeft size={20} />
-              </button>
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => prev - 1)}
-                className="p-2 text-gray-400 hover:text-[#00CFFF] disabled:opacity-20 transition-all"
-                title="Previous Page"
-              >
-                <FiChevronLeft size={20} />
-              </button>
-            </div>
-
-            {/* Dynamic Page Numbers */}
-            <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700/50 p-1.5 rounded-2xl">
-              {[...Array(totalPages)].map((_, i) => {
-                const pageNum = i + 1;
-                // Basic logic to show limited numbers if totalPages is huge
-                if (totalPages > 5 && Math.abs(pageNum - currentPage) > 2) return null;
-                
-                return (
-                  <button 
-                    key={i} 
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`w-9 h-9 rounded-xl text-xs font-black transition-all ${
-                      currentPage === pageNum 
-                        ? 'bg-[#00CFFF] text-white shadow-md' 
-                        : 'text-gray-400 hover:bg-white dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-white'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Next/Last Icons */}
-            <div className="flex gap-1 ml-2">
-              <button 
-                disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage(prev => prev + 1)}
-                className="p-2 text-gray-400 hover:text-[#00CFFF] disabled:opacity-20 transition-all"
-                title="Next Page"
-              >
-                <FiChevronRight size={20} />
-              </button>
-              <button 
-                disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage(totalPages)}
-                className="p-2 text-gray-400 hover:text-[#00CFFF] disabled:opacity-20 transition-all"
-                title="Last Page"
-              >
-                <FiChevronsRight size={20} />
-              </button>
-            </div>
-          </div>
-
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-            Showing {currentData.length} of {filteredRooms.length} Rooms
-          </p>
         </div>
       </div>
 
-      {/* --- Modals remain the same as previous logic --- */}
+      {/* --- Responsive Modals (Edit/View/Delete) --- */}
+      {/* (Remains functionally the same but with enhanced padding/rounded corners in the Modal component above) */}
+      
       {activeModal === "edit" && (
         <Modal title="Configure Room" onClose={() => setActiveModal(null)}>
           <form onSubmit={handleSave} className="space-y-5">
@@ -434,7 +371,6 @@ const Rooms: React.FC = () => {
         </Modal>
       )}
 
-      {/* ... View and Delete modals follow same pattern ... */}
       {activeModal === "view" && selectedRoom && (
         <Modal title={`Room Profile: ${selectedRoom.roomNumber}`} onClose={() => setActiveModal(null)}>
           <div className="space-y-6">
