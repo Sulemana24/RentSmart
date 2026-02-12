@@ -3,6 +3,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   User,
+  setPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 
@@ -56,7 +58,9 @@ export const loginUser = async (
   role: "renter" | "homeowner" | "hostel" | "admin";
 }> => {
   try {
+    await setPersistence(auth, browserSessionPersistence);
     const userCred = await signInWithEmailAndPassword(auth, email, password);
+
     const uid = userCred.user.uid;
 
     const userSnap = await getDoc(doc(db, "users", uid));

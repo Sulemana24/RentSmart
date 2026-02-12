@@ -147,61 +147,26 @@ const AddRoom: React.FC = () => {
           </div>
         </section>
 
-        {/* SECTION 2: MANAGEMENT SETTINGS */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 text-[#00CFFF] font-bold text-xs uppercase tracking-[0.2em]">
-            <FiLayers /> Administrative Logic
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="col-span-1">
-              <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Floor Level</label>
-              <input type="text" value={floor} onChange={(e) => setFloor(e.target.value)}
-                className="w-full px-5 py-4 border-2 border-gray-100 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-900 outline-none"
-                placeholder="1st Floor" />
-            </div>
-            <div className="col-span-1">
-              <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Max Occupants</label>
-              <input type="number" value={capacity} onChange={(e) => setCapacity(e.target.value)}
-                className="w-full px-5 py-4 border-2 border-gray-100 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-900 outline-none" />
-            </div>
-            <div className="col-span-1">
-              <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Gender Policy</label>
-              <select value={gender} onChange={(e) => setGender(e.target.value)}
-                className="w-full px-5 py-4 border-2 border-gray-100 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-900 outline-none">
-                <option>Mixed</option>
-                <option>Male Only</option>
-                <option>Female Only</option>
-              </select>
-            </div>
-            <div className="col-span-1">
-              <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Room Status</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value)}
-                className={`w-full px-5 py-4 border-2 border-gray-100 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-900 outline-none font-bold ${status === 'Available' ? 'text-green-500' : 'text-orange-500'}`}>
-                <option>Available</option>
-                <option>Reserved</option>
-                <option>Under Maintenance</option>
-              </select>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 3: FEATURES GRID */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 text-[#00CFFF] font-bold text-xs uppercase tracking-[0.2em]">
-            <FiTag /> Amenities & Infrastructure
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {allFeatures.map((feature) => (
-              <label key={feature} className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 group ${
-                features.includes(feature) 
-                ? 'bg-[#00CFFF]/5 border-[#00CFFF] shadow-md shadow-[#00CFFF]/10' 
-                : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
-              }`}>
-                <input type="checkbox" className="hidden" checked={features.includes(feature)} onChange={() => toggleFeature(feature)} />
-                <span className={`text-[10px] font-black text-center transition-colors ${
-                  features.includes(feature) ? 'text-[#00CFFF]' : 'text-gray-400 group-hover:text-gray-500'
-                }`}>
-                  {feature.toUpperCase()}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Room Features
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              "AC",
+              "Attached Bath",
+              "Study Table",
+              "Wardrobe",
+              "WiFi",
+              "TV",
+              "Fridge",
+              "Balcony",
+              "Free Cleaning",
+            ].map((feature) => (
+              <label key={feature} className="flex items-center gap-2">
+                <input type="checkbox" className="rounded" />
+                <span className="text-gray-700 dark:text-gray-300">
+                  {feature}
                 </span>
                 {features.includes(feature) && (
                   <div className="absolute -top-2 -right-2 bg-[#00CFFF] text-white rounded-full p-1 text-[8px]">
