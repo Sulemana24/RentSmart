@@ -8,9 +8,7 @@ import {
   FiUser,
 } from "react-icons/fi";
 
-interface RoomsProps {
-  // You can add props here if needed
-}
+interface RoomsProps {}
 
 const Rooms: React.FC<RoomsProps> = () => {
   const rooms = [
