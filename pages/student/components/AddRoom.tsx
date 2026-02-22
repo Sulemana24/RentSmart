@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { FaHome, FaMoneyBill } from "react-icons/fa";
+import { CiImageOn } from "react-icons/ci";
 
 const AddRoom: React.FC = () => {
   const [addMode, setAddMode] = useState<"single" | "bulk">("single");
@@ -220,12 +222,16 @@ const AddRoom: React.FC = () => {
                   onChange={(e) => setSelectedRoomType(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent"
                 >
-                  <option value="">-- Select Room Type --</option>
-                  <option value="Single">Single Room</option>
-                  <option value="Double">Double Room</option>
-                  <option value="Triple">Triple Room</option>
-                  <option value="Quad">Quad Room</option>
-                  <option value="Suite">Suite</option>
+                  <option>Single</option>
+                  <option>2 in 1</option>
+                  <option>3 in 1</option>
+                  <option>4 in 1</option>
+                  <option>5 in 1</option>
+                  <option>6 in 1</option>
+                  <option>7 in 1</option>
+                  <option>8 in 1</option>
+                  <option>9 in 1</option>
+                  <option>10 in 1</option>
                 </select>
               </div>
 
@@ -342,7 +348,6 @@ const AddRoom: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Discount Percentage */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Discount (%)
@@ -359,7 +364,6 @@ const AddRoom: React.FC = () => {
                   />
                 </div>
 
-                {/* Utilities Included */}
                 <div className="flex items-center">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -377,7 +381,6 @@ const AddRoom: React.FC = () => {
                 </div>
               </div>
 
-              {/* Price Summary */}
               {(rentPrice || discountedPrice) && (
                 <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <p className="text-sm text-blue-700 dark:text-blue-300">
@@ -409,13 +412,11 @@ const AddRoom: React.FC = () => {
               )}
             </div>
 
-            {/* Room Pictures Upload Section */}
             <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                 Room Pictures (These will be added to all rooms in this range)
               </label>
 
-              {/* Upload Area */}
               <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-[#00CFFF] transition-colors">
                 <input
                   type="file"
@@ -451,7 +452,6 @@ const AddRoom: React.FC = () => {
                 </label>
               </div>
 
-              {/* Picture Previews */}
               {picturePreviews.length > 0 && (
                 <div className="mt-4">
                   <div className="flex justify-between items-center mb-2">
@@ -469,7 +469,6 @@ const AddRoom: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Upload Progress */}
                   {isUploading && (
                     <div className="mb-3">
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -506,7 +505,6 @@ const AddRoom: React.FC = () => {
                       </div>
                     ))}
 
-                    {/* Add More Button */}
                     <label className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg h-24 flex flex-col items-center justify-center cursor-pointer hover:border-[#00CFFF] transition-colors">
                       <input
                         type="file"
@@ -553,7 +551,7 @@ const AddRoom: React.FC = () => {
               <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    📋 Preview: {previewRooms.length} room
+                    Preview: {previewRooms.length} room
                     {previewRooms.length !== 1 ? "s" : ""} to be added
                   </span>
                   <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
@@ -579,7 +577,6 @@ const AddRoom: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Quick stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -616,29 +613,30 @@ const AddRoom: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Additional info badges */}
                 <div className="flex flex-wrap gap-2 mt-3">
                   {rentPrice && (
                     <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
-                      💰 {formatPrice(parseFloat(rentPrice))}
+                      <FaMoneyBill />
+                      {formatPrice(parseFloat(rentPrice))}
                     </span>
                   )}
                   {picturePreviews.length > 0 && (
                     <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full">
-                      🖼️ {picturePreviews.length} photo
+                      <CiImageOn />
+                      {picturePreviews.length} photo
                       {picturePreviews.length !== 1 ? "s" : ""}
                     </span>
                   )}
                   {selectedRoomType && (
                     <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-2 py-1 rounded-full">
-                      🏠 {selectedRoomType}
+                      <FaHome />
+                      {selectedRoomType}
                     </span>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Summary */}
             <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <p className="text-sm text-blue-700 dark:text-blue-300">
                 ⓘ Rooms to be added: {previewRooms.length || 0}
@@ -668,7 +666,6 @@ const AddRoom: React.FC = () => {
             </div>
           </>
         ) : (
-          // Single room form with rent price
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -699,18 +696,22 @@ const AddRoom: React.FC = () => {
                   Room Type
                 </label>
                 <select className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#00CFFF] focus:border-transparent">
-                  <option>Single Room</option>
-                  <option>Double Room</option>
-                  <option>Triple Room</option>
-                  <option>Quad Room</option>
-                  <option>Suite</option>
+                  <option>Single</option>
+                  <option>2 in 1</option>
+                  <option>3 in 1</option>
+                  <option>4 in 1</option>
+                  <option>5 in 1</option>
+                  <option>6 in 1</option>
+                  <option>7 in 1</option>
+                  <option>8 in 1</option>
+                  <option>9 in 1</option>
+                  <option>10 in 1</option>
                 </select>
               </div>
 
-              {/* Rent Price for Single Room */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Monthly Rent
+                  Price
                 </label>
                 <div className="flex">
                   <select
@@ -737,11 +738,10 @@ const AddRoom: React.FC = () => {
               </div>
             </div>
 
-            {/* Additional Single Room Pricing Fields */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Security Deposit
+                  Security Deposit(optional)
                 </label>
                 <div className="flex">
                   <span className="inline-flex items-center px-3 py-3 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-lg bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
@@ -761,7 +761,7 @@ const AddRoom: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Discount (%)
+                  Discount % (optional)
                 </label>
                 <input
                   type="number"
@@ -792,7 +792,6 @@ const AddRoom: React.FC = () => {
               </div>
             </div>
 
-            {/* Single Room Picture Upload */}
             <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                 Room Pictures
@@ -830,7 +829,6 @@ const AddRoom: React.FC = () => {
                 </label>
               </div>
 
-              {/* Picture Previews for Single Room */}
               {picturePreviews.length > 0 && (
                 <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {picturePreviews.map((preview, index) => (
@@ -855,7 +853,6 @@ const AddRoom: React.FC = () => {
           </>
         )}
 
-        {/* Room Features */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Room Features
@@ -893,7 +890,6 @@ const AddRoom: React.FC = () => {
           </div>
         </div>
 
-        {/* Room Description */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Room Description
@@ -905,7 +901,6 @@ const AddRoom: React.FC = () => {
           />
         </div>
 
-        {/* Form Actions */}
         <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
           <button
             type="button"
@@ -917,9 +912,7 @@ const AddRoom: React.FC = () => {
             type="submit"
             className="w-full sm:w-auto px-6 py-3 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90 transition-colors"
           >
-            {addMode === "bulk"
-              ? `Add ${previewRooms.length || 0} Room${previewRooms.length !== 1 ? "s" : ""} ${rentPrice ? `at ${formatPrice(parseFloat(rentPrice))}` : ""}`
-              : "Add Room"}
+            {addMode === "bulk" ? "Add Rooms" : "Add Room"}
           </button>
         </div>
       </form>
