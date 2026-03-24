@@ -150,14 +150,9 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const formData = new FormData(e.target as HTMLFormElement);
 
-    const formObject: Record<string, string> = {};
-    formData.forEach((value, key) => {
-      if (typeof value === "string") {
-        formObject[key] = value;
-      }
-    });
+    const formObject = form;
+
     const errors = validateForm(formObject);
     if (errors.length > 0) {
       alert(errors.join("\n"));
@@ -198,7 +193,11 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
     try {
       const newDocRef = doc(db, "properties", propertyData.id);
       await setDoc(newDocRef, propertyData);
-      alert("Property added successfully!");
+      showToast({
+        title: "Sucess",
+        message: "Property added successfully!",
+      });
+
       if (onSubmit) onSubmit(propertyData);
     } catch (error: any) {
       showToast({
@@ -406,6 +405,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <input
                   type="text"
                   name="name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Villa Ocean Breeze"
                   required
@@ -445,6 +446,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   <input
                     type="number"
                     name="price"
+                    value={form.price}
+                    onChange={(e) =>
+                      setForm({ ...form, price: e.target.value })
+                    }
                     className="w-full pl-10 pr-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="3200"
                     required
@@ -461,6 +466,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <input
                   type="number"
                   name="beds"
+                  value={form.beds}
+                  onChange={(e) => setForm({ ...form, beds: e.target.value })}
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="3"
                   required
@@ -476,11 +483,14 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <input
                   type="number"
                   name="washrooms"
+                  value={form.washrooms}
+                  onChange={(e) =>
+                    setForm({ ...form, washrooms: e.target.value })
+                  }
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="3"
                   required
                   min="0"
-                  id="quantity"
                 />
               </div>
 
@@ -493,6 +503,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   <input
                     type="number"
                     name="agentFeePercentage"
+                    value={form.agentFeePercentage}
+                    onChange={(e) =>
+                      setForm({ ...form, agentFeePercentage: e.target.value })
+                    }
                     className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="5"
                     min="0"
@@ -516,6 +530,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   <input
                     type="number"
                     name="walkingFee"
+                    value={form.walkingFee}
+                    onChange={(e) =>
+                      setForm({ ...form, walkingFee: e.target.value })
+                    }
                     className="w-full pl-10 pr-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="50"
                     min="0"
@@ -530,10 +548,16 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 </label>
                 <div className="relative">
                   <input
-                    type="text"
+                    type="number"
                     name="discount"
-                    className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    value={form.discount}
+                    onChange={(e) =>
+                      setForm({ ...form, discount: e.target.value })
+                    }
+                    min="0"
+                    max="100"
                     placeholder="10"
+                    className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                   <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
                     % off
@@ -573,6 +597,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <input
                   type="text"
                   name="state"
+                  value={form.state}
+                  onChange={(e) => setForm({ ...form, state: e.target.value })}
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Greater Accra Region"
                   required
@@ -602,6 +628,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 </label>
                 <textarea
                   name="description"
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm({ ...form, description: e.target.value })
+                  }
                   rows={6}
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Describe your property in detail. Include features, unique selling points, nearby amenities, and any special notes..."
@@ -853,6 +883,34 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 onChange={(e) => setVideoInput(e.target.value)}
               />
 
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isValidVideoUrl(videoInput)) {
+                    showToast({
+                      title: "Invalid URL",
+                      message: "Enter a valid YouTube or TikTok link",
+                    });
+                    return;
+                  }
+
+                  setUploadedVideos((prev) => [...prev, videoInput]);
+                  setVideoInput("");
+                }}
+                className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+              >
+                Add Video
+              </button>
+
+              {uploadedVideos.map((video, index) => (
+                <div key={index} className="mt-3 flex items-center gap-2">
+                  <span className="text-sm">{video}</span>
+                  <button onClick={() => removeVideo(index)}>
+                    <FiTrash2 />
+                  </button>
+                </div>
+              ))}
+
               {isValidVideoUrl(videoInput) && (
                 <div className="mt-6">
                   <h4 className="font-medium text-gray-900 dark:text-white mb-4">
@@ -911,6 +969,43 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                     {duration} {duration === 1 ? "Month" : "Months"}
                   </button>
                 ))}
+              </div>
+            </div>
+            <div className="space-y-3 md:col-span-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                <FiStar className="w-4 h-4 text-amber-500" />
+                Featured Property
+              </label>
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200 dark:border-amber-800/50 transition-all duration-200 hover:shadow-md">
+                <input
+                  type="checkbox"
+                  checked={featured}
+                  onChange={(e) => setFeatured(e.target.checked)}
+                  className="mt-0.5 w-5 h-5 rounded border-amber-300 dark:border-amber-600 text-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-0 cursor-pointer transition-all duration-200"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    Mark this property as featured to show it on the homepage or
+                    highlight it.
+                  </span>
+                  <span className="text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-3 py-1.5 rounded-lg inline-flex items-center gap-2 w-fit">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Featured properties incur a monthly fee of{" "}
+                    <strong>GHC 30.00</strong>
+                  </span>
+                </div>
               </div>
             </div>
           </div>

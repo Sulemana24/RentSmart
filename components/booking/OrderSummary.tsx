@@ -18,8 +18,9 @@ const OrderSummary: React.FC<{ bookingDetails: any }> = ({
           {bookingDetails.propertyName}
         </h3>
         <p className="text-sm text-gray-600 mt-1">
-          Starting {bookingDetails.startDate} • {bookingDetails.duration} Year
-          {bookingDetails.duration > 1 ? "s" : ""}
+          Starting {bookingDetails.startDate} •{" "}
+          {bookingDetails.durationInMonths} Month
+          {bookingDetails.durationInMonths > 1 ? "s" : ""}
         </p>
       </div>
     </div>
@@ -30,12 +31,13 @@ const OrderSummary: React.FC<{ bookingDetails: any }> = ({
         Price Breakdown
       </h3>
 
+      {/* Property Price */}
       <div className="flex justify-between items-center py-2">
         <div>
           <span className="text-gray-600">Property Price</span>
           <p className="text-xs text-gray-500">
-            Ghc {bookingDetails.price} × {bookingDetails.duration} Year
-            {bookingDetails.duration > 1 ? "s" : ""}
+            Ghc {bookingDetails.price} × {bookingDetails.durationInMonths} Month
+            {bookingDetails.durationInMonths > 1 ? "s" : ""}
           </p>
         </div>
         <span className="font-semibold text-gray-600">
@@ -84,14 +86,16 @@ const OrderSummary: React.FC<{ bookingDetails: any }> = ({
       </div>
 
       {/* Duration Summary */}
-      <div className="bg-blue-50 p-3 rounded-lg mt-4">
-        <p className="text-sm text-blue-800 text-center">
+      <div className="bg-blue-50 p-3 rounded-lg mt-4 text-center">
+        <p className="text-sm text-blue-800">
           <strong>
-            {bookingDetails.duration} Year
-            {bookingDetails.duration > 1 ? "s" : ""} Rental
+            {bookingDetails.durationInMonths} Month
+            {bookingDetails.durationInMonths > 1 ? "s" : ""} Rental
           </strong>{" "}
-          • Ghc {bookingDetails.price}/year × {bookingDetails.duration} year
-          {bookingDetails.duration > 1 ? "s" : ""}
+          • Ghc {bookingDetails.price}/month × {bookingDetails.durationInMonths}{" "}
+          month
+          {bookingDetails.durationInMonths > 1 ? "s" : ""} = Ghc{" "}
+          {bookingDetails.totalPropertyPrice}
         </p>
       </div>
     </div>

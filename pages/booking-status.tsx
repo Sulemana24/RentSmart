@@ -1,7 +1,14 @@
 import { useState } from "react";
 import Link from "next/link";
-import { PROPERTYLISTINGSAMPLE } from "@/constants";
-import { MOCK_BOOKING_DATA } from "@/constants/bookingData";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { PropertyProps } from "@/interfaces";
 
 interface BookingStatus {
@@ -22,24 +29,66 @@ export default function BookingStatusPage() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const booking = MOCK_BOOKING_DATA[bookingCode.toUpperCase()];
+    try {
+      const db = getFirestore();
 
-      if (booking) {
-        const property = PROPERTYLISTINGSAMPLE.find(
-          (prop) => prop.id === booking.propertyId,
-        );
+      // 🔍 Find booking by bookingPin
+      const bookingsRef = collection(db, "bookings");
+      const q = query(
+        bookingsRef,
+        where("bookingPin", "==", bookingCode.toUpperCase()),
+      );
 
-        setBookingStatus({
-          bookingData: booking,
-          property: property || null,
-        });
-      } else {
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
         setBookingStatus(null);
+        setIsLoading(false);
+        return;
       }
 
+      const bookingDoc = querySnapshot.docs[0];
+      const bookingData = bookingDoc.data();
+
+      // 🔥 Fetch property
+      let property: PropertyProps | null = null;
+
+      if (bookingData.propertyId) {
+        const propertyRef = doc(db, "properties", bookingData.propertyId);
+        const propertySnap = await getDoc(propertyRef);
+
+        if (propertySnap.exists()) {
+          const data = propertySnap.data();
+
+          property = {
+            id: propertySnap.id,
+            name: data.name || "Unknown Property",
+            address: data.address || {
+              city: "Unknown",
+              state: "Unknown",
+              street: "",
+            },
+            rating: data.rating || 0,
+            price: data.price || 0,
+            host: data.host || "Unknown",
+            images: data.images || [],
+            status: data.status || "pending",
+            description: data.description || "",
+            amenities: data.amenities || [],
+          } as PropertyProps;
+        }
+      }
+
+      setBookingStatus({
+        bookingData,
+        property,
+      });
+    } catch (error) {
+      console.error("Error fetching booking:", error);
+      setBookingStatus(null);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const calculateDurationInYears = (
@@ -133,12 +182,6 @@ export default function BookingStatusPage() {
               </button>
             </div>
           </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-gray-500 text-sm">
-              Try sample codes: ABC123, XYZ789, DEF456, GHI789, JKL012
-            </p>
-          </div>
         </div>
 
         {bookingStatus !== null && (
@@ -175,10 +218,10 @@ export default function BookingStatusPage() {
                 <div className="text-center">
                   <div
                     className={`inline-flex items-center px-4 py-2 rounded-full border text-sm font-semibold mb-4 ${getStatusColor(
-                      bookingStatus.bookingData.status,
+                      bookingStatus.bookingData.bookingStatus,
                     )}`}
                   >
-                    {getStatusText(bookingStatus.bookingData.status)}
+                    {getStatusText(bookingStatus.bookingData.bookingStatus)}
                   </div>
                   <h3 className="text-2xl font-bold dark:text-white mb-2">
                     {bookingStatus.property?.name || "Property Not Found"}
@@ -196,7 +239,7 @@ export default function BookingStatusPage() {
                       </label>
                       <p className="dark:text-white font-semibold">
                         {new Date(
-                          bookingStatus.bookingData.checkIn,
+                          bookingStatus.bookingData.paymentDate,
                         ).toLocaleDateString()}
                       </p>
                     </div>
@@ -206,10 +249,7 @@ export default function BookingStatusPage() {
                         Duration
                       </label>
                       <p className="dark:text-white font-semibold">
-                        {calculateDurationInYears(
-                          bookingStatus.bookingData.checkIn,
-                          bookingStatus.bookingData.checkOut,
-                        )}{" "}
+                        {bookingStatus.bookingData.durationInYears}
                         years
                       </p>
                     </div>
@@ -220,7 +260,8 @@ export default function BookingStatusPage() {
                         Property Price
                       </label>
                       <p className="dark:text-white font-semibold">
-                        Ghc{bookingStatus.property?.price}/year
+                        Ghc{bookingStatus.bookingData.totalPropertyPrice}/{" "}
+                        {bookingStatus.bookingData.durationInYears} years
                       </p>
                     </div>
 
@@ -237,7 +278,7 @@ export default function BookingStatusPage() {
                         Total Amount Paid
                       </label>
                       <p className="dark:text-white font-semibold text-xl">
-                        {bookingStatus.bookingData.totalAmount}
+                        {bookingStatus.bookingData.total}
                       </p>
                     </div>
                     <div>
@@ -252,21 +293,28 @@ export default function BookingStatusPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                  <button className="bg-[#FF4FA1] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#00CFFF] transition-colors duration-200">
-                    Continue to Dashboard
-                  </button>
-                  <Link href="/contact">
-                    <button className="border border-gray-700 dark:border-gray-500 dark:text-gray-300 px-8 py-3 rounded-lg font-semibold hover:border-[#00CFFF] hover:text-[#00CFFF] transition-colors duration-200">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-4 sm:pt-6">
+                  <Link href="/dashboard" className="w-full sm:w-auto">
+                    <button className="w-full sm:w-auto bg-[#FF4FA1] hover:[#00CFFF] text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 text-sm sm:text-base relative overflow-hidden group">
+                      <span className="relative z-10">
+                        Continue to Dashboard
+                      </span>
+                      <div className="absolute inset-0 bg-[#00CFFF] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </button>
+                  </Link>
+
+                  <Link href="/contact" className="w-full sm:w-auto">
+                    <button className="w-full sm:w-auto bg-transparent border-2 border-[#FF4FA1] text-[#FF4FA1] hover:bg-[#FF4FA1] hover:text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-semibold transition-all duration-300 hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 text-sm sm:text-base">
                       Contact Support
                     </button>
                   </Link>
+
                   <button
                     onClick={() => {
                       setBookingCode("");
                       setBookingStatus(null);
                     }}
-                    className="border border-gray-700 dark:border-gray-500 dark:text-gray-300 px-8 py-3 rounded-lg font-semibold hover:border-[#FF4FA1] hover:text-[#FF4FA1] transition-colors duration-200"
+                    className="w-full sm:w-auto bg-transparent border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-[#FF4FA1] hover:text-[#FF4FA1] hover:bg-[#FF4FA1]/5 px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl font-semibold transition-all duration-300 hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 text-sm sm:text-base"
                   >
                     Check Another Booking
                   </button>

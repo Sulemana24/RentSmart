@@ -1,21 +1,162 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import BookingSection from "./BookingSection";
 import ReviewSection from "./ReviewSection";
 import BookingForm from "../booking/BookingForm";
-import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
+
+import { db } from "@/lib/firebase";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  serverTimestamp,
+  onSnapshot,
+} from "firebase/firestore";
+import { useToast } from "../ToastProvider";
+
+interface Review {
+  rating: number;
+  comment: string;
+  createdAt: any;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+interface Property {
+  id: string;
+  name: string;
+  price: number;
+  beds: number;
+  rating: number;
+  images: string[];
+  description: string;
+  amenities: string[];
+  agentFeePercentage: number;
+  walkingFee: number;
+  acceptableDurations: number[];
+  address: { city: string; state: string };
+  reviews?: Review[];
+  videoUrl?: string;
+}
 
 export default function PropertyDetail({ property }: { property: any }) {
   const router = useRouter();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string>("");
+  const [reviews, setReviews] = useState(property.reviews || []);
+  const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
+  const { showToast } = useToast();
 
   const propertyImages = property.images || [property.image];
   const hasMultipleImages = propertyImages.length > 1;
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchVideoUrl = async () => {
+      try {
+        const docRef = doc(db, "properties", property.id.toString());
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setVideoUrl(data.videoUrl || "");
+        }
+      } catch (error) {
+        console.error("Error fetching video URL:", error);
+      }
+    };
+
+    fetchVideoUrl();
+  }, [property.id]);
+
+  useEffect(() => {
+    const docRef = doc(db, "properties", property.id.toString());
+
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Sort reviews by newest first
+        const sortedReviews = (data.reviews || []).sort(
+          (a: any, b: any) => b.createdAt?.toMillis() - a.createdAt?.toMillis(),
+        );
+        setReviews(sortedReviews);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [property.id]);
+
+  const averageRating =
+    property.reviews && property.reviews.length > 0
+      ? property.reviews.reduce((sum: number, r: Review) => sum + r.rating, 0) /
+        property.reviews.length
+      : 0;
 
   // Virtual Tour URL - You can replace this with your actual virtual tour URL
-  const virtualTourUrl =
-    property.virtualTourUrl || "https://example.com/virtual-tour";
+  /*  const virtualTourUrl = property.videos || "https://example.com/virtual-tour"; */
+
+  const handleAddReview = async () => {
+    if (!user) {
+      showToast({
+        title: "Login Required",
+        message: "Please log in to write a review.",
+      });
+      return;
+    }
+
+    if (newReview.rating === 0 || newReview.comment.trim() === "") {
+      showToast({
+        title: "Error",
+        message: "Please provide a rating and comment!",
+      });
+      return;
+    }
+
+    try {
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      let fullName = "Anonymous";
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        if (userData.firstName && userData.lastName) {
+          fullName = `${userData.firstName} ${userData.lastName}`;
+        } else if (userData.name) {
+          fullName = userData.name;
+        }
+      }
+
+      const reviewToAdd = {
+        ...newReview,
+        createdAt: new Date(),
+        user: {
+          id: user.uid,
+          name: fullName,
+          email: user.email,
+        },
+      };
+
+      const docRef = doc(db, "properties", property.id.toString());
+
+      await updateDoc(docRef, {
+        reviews: arrayUnion(reviewToAdd),
+      });
+
+      setNewReview({ rating: 0, comment: "" });
+      showToast({
+        title: "Success",
+        message: "Review submitted successfully!",
+      });
+    } catch (error) {
+      console.error("Error saving review:", error);
+      showToast({ title: "Error", message: "Failed to submit review." });
+    }
+  };
 
   const getDurationText = () => {
     if (
@@ -66,6 +207,13 @@ export default function PropertyDetail({ property }: { property: any }) {
   };
 
   const handleBookNow = () => {
+    if (!user) {
+      showToast({
+        title: "Login Required",
+        message: "Please log in to book this property.",
+      });
+      return;
+    }
     setShowBookingForm(true);
   };
 
@@ -77,23 +225,36 @@ export default function PropertyDetail({ property }: { property: any }) {
       email: `host-${property.id}@rentalgh.com`,
     };
 
-    alert(
-      `Contact Information:\n\nHost: ${contactInfo.hostName}\nProperty: ${contactInfo.propertyName}\nPhone: ${contactInfo.phone}\nEmail: ${contactInfo.email}\n\nWe'll connect you with the host shortly!`,
-    );
+    showToast({
+      title: "Success",
+      message: `Contact Information:\n\nHost: ${contactInfo.hostName}\nProperty: ${contactInfo.propertyName}\nPhone: ${contactInfo.phone}\nEmail: ${contactInfo.email}\n\nWe'll connect you with the host shortly!`,
+    });
   };
 
   // Handler for virtual tour
-  const handleVirtualTour = () => {
+  /* const handleVirtualTour = () => {
     window.open(virtualTourUrl, "_blank", "noopener,noreferrer");
+  }; */
+
+  const handleVirtualTour = () => {
+    if (!videoUrl) {
+      showToast({ title: "Error", message: "Video tour not available" });
+      return;
+    }
+    window.open(videoUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleFormSubmit = (formData: any) => {
-    console.log("Booking form submitted:", formData);
+    showToast({
+      title: "Success",
+      message: `Booking confirmed for ${property.name}! We'll send a confirmation email shortly.`,
+    });
+    /*  console.log("Booking form submitted:", formData);
     console.log("Property:", property);
 
     alert(
       `Booking confirmed for ${property.name}! We'll send a confirmation email shortly.`,
-    );
+    ); */
 
     setShowBookingForm(false);
   };
@@ -257,8 +418,13 @@ export default function PropertyDetail({ property }: { property: any }) {
               <div className="flex items-center bg-yellow-100 dark:bg-yellow-800/30 px-3 py-1 rounded-full shadow-sm">
                 <span className="text-yellow-500 text-lg mr-1">★</span>
                 <span className="font-semibold text-gray-700 dark:text-gray-200">
-                  {property.rating}
+                  {averageRating.toFixed(1)}
                 </span>
+                {reviews.length > 0 && (
+                  <span className="ml-1 text-gray-500 dark:text-gray-400 text-sm">
+                    ({reviews.length} review{reviews.length > 1 ? "s" : ""})
+                  </span>
+                )}
               </div>
             </div>
 
@@ -297,8 +463,8 @@ export default function PropertyDetail({ property }: { property: any }) {
                   </p>
                   {property.acceptableDurations && (
                     <p className="text-xs text-gray-500 ml-8 mt-1">
-                      Available: {property.acceptableDurations.join(", ")} year
-                      {property.acceptableDurations.length > 1 ? "s" : ""}
+                      Available: {property.acceptableDurations.join(", ")}{" "}
+                      months
                     </p>
                   )}
                 </div>
@@ -375,11 +541,77 @@ export default function PropertyDetail({ property }: { property: any }) {
               onContact={handleContact}
             />
 
-            <ReviewSection reviews={property.reviews || []} />
+            <ReviewSection reviews={reviews} />
 
-            <button className="w-full bg-gray-500 text-white py-3 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-300">
-              Write a Review
-            </button>
+            {/* Add Review */}
+            <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-200">
+              <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                Write a Review
+              </h3>
+              <div className="flex flex-col gap-4">
+                {/* Star Rating Section */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Your Rating
+                  </label>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() =>
+                          setNewReview({ ...newReview, rating: star })
+                        }
+                        className="focus:outline-none transform transition-all duration-200 hover:scale-110"
+                        aria-label={`Rate ${star} star${star !== 1 ? "s" : ""}`}
+                      >
+                        <svg
+                          className={`w-8 h-8 sm:w-10 sm:h-10 transition-all duration-200 ${
+                            star <= (newReview.rating || 0)
+                              ? "text-yellow-400 fill-yellow-400 drop-shadow-sm"
+                              : "text-gray-300 dark:text-gray-600 fill-gray-300 dark:fill-gray-600 hover:text-gray-400 dark:hover:text-gray-500"
+                          }`}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </button>
+                    ))}
+                    {newReview.rating > 0 && (
+                      <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                        ({newReview.rating} out of 5)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Comment Section */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Your Review
+                  </label>
+                  <textarea
+                    value={newReview.comment}
+                    onChange={(e) =>
+                      setNewReview({ ...newReview, comment: e.target.value })
+                    }
+                    placeholder="Share your experience with this property..."
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none"
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  onClick={handleAddReview}
+                  disabled={!newReview.rating || !newReview.comment?.trim()}
+                  className="px-6 py-3 bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white font-medium rounded-xl shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  Submit Review
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -410,11 +642,11 @@ export default function PropertyDetail({ property }: { property: any }) {
                 <div className="flex items-center mt-2">
                   <span className="text-yellow-500 mr-1">★</span>
                   <span className="font-semibold text-gray-600">
-                    {property.rating}
+                    {averageRating.toFixed(1)}
                   </span>
                   <span className="mx-2">•</span>
                   <span className="text-[#FF4FA1] font-bold text-xl">
-                    Ghc {property.price}/year
+                    Ghc {property.price}/month
                   </span>
                 </div>
 

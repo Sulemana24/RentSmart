@@ -15,7 +15,7 @@ import img13 from "../public/images/pexels-pixabay-209296.jpg";
 
 export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
   {
-    id: 1,
+    id: "1",
     name: "Villa Ocean Breeze",
     address: {
       state: "Greater Accra Region",
@@ -23,7 +23,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
       country: "Ghana",
     },
     rating: 4.89,
-    category: ["Luxury Villa", "Pool", "Free Parking"],
+    category: ["Luxury Villa"],
     price: 3200,
     agentFeePercentage: 5,
     walkingFee: 50,
@@ -31,7 +31,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     beds: 3,
     image: img1.src,
     images: [img1.src, img2.src, img3.src, img4.src],
-    discount: "",
+    discount: 0,
     host: "Maltiti",
     featured: true,
     description:
@@ -43,7 +43,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     ],
   },
   {
-    id: 2,
+    id: "2",
     name: "Mountain Escape Chalet",
     address: {
       state: "Ashanti Region",
@@ -59,7 +59,7 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     beds: 4,
     image: img2.src,
     images: [img2.src, img1.src, img5.src],
-    discount: "30",
+    discount: 30,
     host: "Maltiti",
     description:
       "Escape into the serene mountains with this rustic yet modern chalet. Ideal for family trips, it offers a cozy fireplace and breathtaking views of the surrounding peaks.",

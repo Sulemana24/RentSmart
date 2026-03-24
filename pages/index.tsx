@@ -1,8 +1,10 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import PropertyCard from "../components/property/PropertyCard";
-import { PROPERTYLISTINGSAMPLE } from "../constants/index";
+
 import { PropertyProps } from "@/interfaces";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, Timestamp } from "firebase/firestore";
 import {
   FiChevronRight,
   FiStar,
@@ -32,11 +34,44 @@ export default function Home() {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await axios.get("/api/properties");
-        setProperties(response.data);
+        const querySnapshot = await getDocs(collection(db, "properties"));
+        const propertiesData: PropertyProps[] = querySnapshot.docs.map(
+          (doc) => {
+            const data = doc.data() as Omit<PropertyProps, "id">;
+
+            const normalizedData: PropertyProps = {
+              id: doc.id,
+              name: data.name || "",
+              address: {
+                ...data.address,
+                city: data.address?.city || "",
+                state: data.address?.state || "",
+              },
+              price: Number(data.price) || 0,
+              rating: Number(data.rating) || 0,
+              discount: Number(data.discount) || 0,
+              featured: !!data.featured,
+              description: data.description || "",
+              amenities: data.amenities || [],
+              beds: data.beds || 0,
+              agentFeePercentage: data.agentFeePercentage || 0,
+              walkingFee: data.walkingFee || 0,
+              acceptableDurations: data.acceptableDurations || [],
+              image: data.image || "",
+              images: data.images || [],
+              createdAt:
+                data.createdAt instanceof Timestamp
+                  ? data.createdAt.toDate()
+                  : data.createdAt || new Date(),
+            };
+
+            return normalizedData;
+          },
+        );
+
+        setProperties(propertiesData);
       } catch (error) {
         console.error("Error fetching properties:", error);
-        setProperties(PROPERTYLISTINGSAMPLE);
       } finally {
         setLoading(false);
       }
@@ -53,7 +88,7 @@ export default function Home() {
       property.name?.toLowerCase().includes(query) ||
       property.address.city?.toLowerCase().includes(query) ||
       property.description?.toLowerCase().includes(query) ||
-      property.category?.includes(query) ||
+      property.category?.some((cat) => cat.toLowerCase().includes(query)) ||
       property.amenities?.some((feature) =>
         feature.toLowerCase().includes(query),
       ) ||
@@ -66,7 +101,9 @@ export default function Home() {
     .filter((property) => property.rating >= 4.8 && property.discount)
     .slice(0, 6);
   const newListings = [...filteredProperties]
-    .sort((a, b) => b.id - a.id)
+    .sort(
+      (a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0),
+    )
     .slice(0, 6);
   const displayedProperties = filteredProperties.slice(
     0,
@@ -100,6 +137,11 @@ export default function Home() {
         (prev - 1 + featuredProperties.length) % featuredProperties.length,
     );
   };
+
+  const totalProperties = properties.length;
+  const averageRating =
+    properties.reduce((sum, p) => sum + (p.rating || 0), 0) /
+    (properties.length || 1);
 
   if (loading) {
     return (
@@ -169,13 +211,13 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             {
-              value: "200+",
+              value: totalProperties,
               label: "Premium Properties",
               icon: <FiTrendingUp />,
               color: "text-[#00CFFF]",
             },
             {
-              value: "4.8",
+              value: averageRating.toFixed(1),
               label: "Average Rating",
               icon: <FiStar />,
               color: "text-[#FF4FA1]",
@@ -248,143 +290,31 @@ export default function Home() {
             </div>
           </div>
 
-          {featuredProperties.length > 0 && (
-            <div className="relative">
-              <div className="hidden lg:grid grid-cols-3 gap-8">
+          <div className="relative">
+            {featuredProperties.length > 0 && (
+              <div className="hidden md:grid  lg:grid-cols-3 gap-8">
                 {[0, 1, 2].map((offset) => {
                   const index =
                     (featuredIndex + offset) % featuredProperties.length;
                   const property = featuredProperties[index];
-                  return (
-                    <div key={property.id} className="relative">
-                      <PropertyCard property={property} />
-                      <div className="absolute top-4 left-4 z-10">
-                        <span className="px-3 py-1.5 bg-[#FF4FA1] text-white rounded-lg font-bold text-xs">
-                          FEATURED
-                        </span>
-                      </div>
-                    </div>
-                  );
+                  return <PropertyCard key={property.id} property={property} />;
                 })}
               </div>
+            )}
 
-              {/* Mobile & Tablet: Carousel */}
-              <div className="lg:hidden relative">
-                <div className="overflow-hidden rounded-2xl">
-                  <div
-                    className="flex transition-transform duration-500 ease-in-out"
-                    style={{
-                      transform: `translateX(-${featuredIndex * 100}%)`,
-                    }}
-                  >
-                    {featuredProperties.map((property) => (
-                      <div
-                        key={property.id}
-                        className="w-full flex-shrink-0 px-4"
-                      >
-                        <div className="relative">
-                          <PropertyCard property={property} />
-                          <div className="absolute top-4 left-4 z-10">
-                            <span className="px-3 py-1.5 bg-[#FF4FA1] text-white rounded-lg font-bold text-xs">
-                              FEATURED
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Mobile Navigation */}
-                <div className="flex justify-center gap-3 mt-8">
-                  {featuredProperties.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setFeaturedIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        index === featuredIndex
-                          ? "w-6 bg-[#00CFFF]"
-                          : "bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600"
-                      }`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-
-                {/* Mobile Arrows */}
-                <div className="absolute top-1/2 left-4 transform -translate-y-1/2 lg:hidden">
-                  <button
-                    onClick={prevFeatured}
-                    className="p-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full shadow-xl hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 group"
-                    aria-label="Previous property"
-                  >
-                    <FiChevronLeft className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:text-[#00CFFF] transition-colors" />
-                  </button>
-                </div>
-
-                <div className="absolute top-1/2 right-4 transform -translate-y-1/2 lg:hidden">
-                  <button
-                    onClick={nextFeatured}
-                    className="p-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full shadow-xl hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 group"
-                    aria-label="Next property"
-                  >
-                    <FiChevronRight className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:text-[#00CFFF] transition-colors" />
-                  </button>
+            {featuredProperties.length > 0 && (
+              <div className="md:hidden grid grid-cols-1">
+                <div className="flex transition-transform">
+                  {[featuredIndex].map((index) => {
+                    const property = featuredProperties[index];
+                    return (
+                      <PropertyCard key={property.id} property={property} />
+                    );
+                  })}
                 </div>
               </div>
-
-              {/* Desktop Navigation */}
-              <div className="hidden lg:flex items-center justify-between mt-10">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Showing{" "}
-                    {Math.min(featuredIndex + 3, featuredProperties.length)} of{" "}
-                    {featuredProperties.length} properties
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-6">
-                  {/* Desktop Dots */}
-                  <div className="flex items-center gap-2">
-                    {Array.from({
-                      length: Math.ceil(featuredProperties.length / 3),
-                    }).map((_, groupIndex) => (
-                      <button
-                        key={groupIndex}
-                        onClick={() => setFeaturedIndex(groupIndex * 3)}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          featuredIndex >= groupIndex * 3 &&
-                          featuredIndex < (groupIndex + 1) * 3
-                            ? "w-6 bg-[#00CFFF]"
-                            : "bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600"
-                        }`}
-                        aria-label={`Go to group ${groupIndex + 1}`}
-                      />
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={prevFeatured}
-                      className="px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 font-medium flex items-center gap-2"
-                      disabled={featuredIndex === 0}
-                    >
-                      <FiChevronLeft className="w-5 h-5" />
-                      <span>Previous</span>
-                    </button>
-                    <button
-                      onClick={nextFeatured}
-                      className="px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 font-medium flex items-center gap-2"
-                      disabled={featuredIndex >= featuredProperties.length - 3}
-                    >
-                      <span>Next</span>
-                      <FiChevronRight className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {featuredProperties.length === 0 && (
             <div className="text-center py-12">

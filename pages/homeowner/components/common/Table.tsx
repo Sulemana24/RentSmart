@@ -15,6 +15,12 @@ interface Column {
   className?: string;
   badgeColors?: Record<string, string>;
   render?: (item: any) => any;
+  actions?: {
+    icon: React.ReactNode;
+    color: string;
+    onClick?: (item: any) => void;
+    title?: string;
+  }[];
 }
 
 interface TableProps {
@@ -24,6 +30,9 @@ interface TableProps {
   viewAllText?: string;
   showPagination?: boolean;
   totalItems?: number;
+  itemsPerPage?: number;
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
 }
 
 const Table = ({
@@ -33,8 +42,18 @@ const Table = ({
   viewAllText,
   showPagination = false,
   totalItems = 0,
+  itemsPerPage = 10,
+  currentPage = 1,
+  onPageChange,
 }: TableProps) => {
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   const renderCell = (item: any, column: Column) => {
+    // If there's a custom render function, use it regardless of type
+    if (column.render) {
+      return column.render(item);
+    }
+
     switch (column.type) {
       case "badge":
         const badgeColor =
@@ -48,10 +67,11 @@ const Table = ({
         );
 
       case "indicator":
-        const color = column.render ? column.render(item) : "gray";
         return (
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full bg-${color}-500`}></div>
+            <div
+              className={`w-2 h-2 rounded-full bg-${item[column.key]}-500`}
+            ></div>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               {item.tenant}
             </span>
@@ -61,7 +81,7 @@ const Table = ({
       case "details":
         return (
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            {column.render ? column.render(item) : item[column.key]}
+            {item[column.key]}
           </div>
         );
 
@@ -76,26 +96,21 @@ const Table = ({
         );
 
       case "custom":
-        return column.render ? column.render(item) : item[column.key];
+        return item[column.key];
 
       case "actions":
         return (
           <div className="flex items-center gap-2">
-            {column.render ? (
-              column.render(item)
-            ) : (
-              <>
-                <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#00CFFF] hover:bg-[#00CFFF]/10 rounded-lg transition-colors">
-                  <FiEye />
-                </button>
-                <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-colors">
-                  <FiEdit />
-                </button>
-                <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#FF4FA1] hover:bg-[#FF4FA1]/10 rounded-lg transition-colors">
-                  <FiTrash />
-                </button>
-              </>
-            )}
+            {column.actions?.map((action: any, index: number) => (
+              <button
+                key={index}
+                onClick={() => action.onClick?.(item)}
+                className={`p-2 rounded ${action.color} transition-colors`}
+                title={action.title}
+              >
+                {action.icon}
+              </button>
+            ))}
           </div>
         );
 
@@ -105,9 +120,9 @@ const Table = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
       {title && (
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between p-6 pb-0">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {title}
           </h3>
@@ -136,9 +151,9 @@ const Table = ({
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => (
+                {items.map((item, index) => (
                   <tr
-                    key={item.id}
+                    key={item.id || index}
                     className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   >
                     {columns.map((column) => (
@@ -152,19 +167,49 @@ const Table = ({
             </table>
           </div>
 
-          {showPagination && (
-            <div className="flex items-center justify-between mt-6">
+          {showPagination && totalPages > 1 && (
+            <div className="flex items-center justify-between p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {items.length} of {totalItems}
               </div>
               <div className="flex items-center gap-2">
-                <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <button
+                  onClick={() => onPageChange?.(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
                   Previous
                 </button>
-                <button className="px-4 py-2 bg-[#00CFFF] text-white rounded-lg hover:bg-[#00CFFF]/90">
-                  1
-                </button>
-                <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => onPageChange?.(pageNum)}
+                      className={`px-4 py-2 rounded-lg transition-all ${
+                        currentPage === pageNum
+                          ? "bg-gradient-to-r from-[#FF4FA1] to-[#00CFFF] text-white"
+                          : "border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => onPageChange?.(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
                   Next
                 </button>
               </div>
@@ -172,11 +217,11 @@ const Table = ({
           )}
         </>
       ) : (
-        <div className="space-y-4">
-          {items.map((item) => (
+        <div className="space-y-4 p-6">
+          {items.map((item, index) => (
             <div
-              key={item.id}
-              className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+              key={item.id || index}
+              className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors cursor-pointer"
             >
               {columns.map((column) => (
                 <div key={column.key} className="flex-1">

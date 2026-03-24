@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export interface Review {
   user: string;
   comment: string;
@@ -12,7 +14,7 @@ export interface Address {
 
 export interface BookingDetails {
   id?: string;
-  propertyId: number;
+  propertyId: string;
   propertyName: string;
   propertyImage: string;
   startDate: string;
@@ -29,12 +31,13 @@ export interface BookingDetails {
 }
 
 export interface PropertyProps {
-  id: number;
+  id: string;
   name: string;
   address: Address;
   rating: number;
   category?: string[];
   price: number;
+  status: string;
   agentFeePercentage: number;
   walkingFee: number;
   acceptableDurations: number[];
@@ -42,10 +45,12 @@ export interface PropertyProps {
   host?: string;
   image: string;
   images: string[];
-  discount?: string;
+  discount?: number;
   description: string;
   amenities?: string[];
   reviews?: Review[];
   featured?: boolean;
   spotlight?: boolean;
+  createdAt?: Date;
+  total?: number;
 }
