@@ -57,12 +57,14 @@ export default function Home() {
               agentFeePercentage: data.agentFeePercentage || 0,
               walkingFee: data.walkingFee || 0,
               acceptableDurations: data.acceptableDurations || [],
+
               image: data.image || "",
               images: data.images || [],
               createdAt:
                 data.createdAt instanceof Timestamp
                   ? data.createdAt.toDate()
                   : data.createdAt || new Date(),
+              status: data.status || "Available",
             };
 
             return normalizedData;

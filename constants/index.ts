@@ -1,4 +1,4 @@
-import { PropertyProps } from "@/interfaces";
+/* import { PropertyProps } from "@/interfaces";
 import img1 from "../public/images/Leonardo_Phoenix_Nestled_atop_a_rolling_hill_on_the_edge_of_to_0.jpg";
 import img2 from "../public/images/image 2.png";
 import img3 from "../public/images/Leonardo_Phoenix_Nestled_atop_a_rolling_hill_on_the_edge_of_to_2.jpg";
@@ -634,3 +634,4 @@ export const PROPERTYLISTINGSAMPLE: PropertyProps[] = [
     ],
   },
 ];
+ */
