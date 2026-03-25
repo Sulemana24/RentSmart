@@ -1,26 +1,51 @@
 "use client";
-import { useState } from "react";
+
 import { FaHome, FaMoneyBill } from "react-icons/fa";
 import { CiImageOn } from "react-icons/ci";
 
 import React, { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { 
-  FiHome, FiInfo, FiTag, FiLayers, FiCheckCircle, 
-  FiAlertCircle, FiX, FiInfo as FiInfoIcon 
+import {
+  FiHome,
+  FiInfo,
+  FiTag,
+  FiLayers,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiX,
+  FiInfo as FiInfoIcon,
 } from "react-icons/fi";
 
 // --- Toast Component ---
-const Toast = ({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) => (
-  <div className={`fixed top-5 right-5 z-[100] flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border animate-in slide-in-from-right duration-300 ${
-    type === 'success' 
-      ? 'bg-green-50 border-green-200 text-green-800' 
-      : 'bg-red-50 border-red-200 text-red-800'
-  }`}>
-    {type === 'success' ? <FiCheckCircle className="text-xl" /> : <FiAlertCircle className="text-xl" />}
+const Toast = ({
+  message,
+  type,
+  onClose,
+}: {
+  message: string;
+  type: "success" | "error";
+  onClose: () => void;
+}) => (
+  <div
+    className={`fixed top-5 right-5 z-[100] flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl border animate-in slide-in-from-right duration-300 ${
+      type === "success"
+        ? "bg-green-50 border-green-200 text-green-800"
+        : "bg-red-50 border-red-200 text-red-800"
+    }`}
+  >
+    {type === "success" ? (
+      <FiCheckCircle className="text-xl" />
+    ) : (
+      <FiAlertCircle className="text-xl" />
+    )}
     <p className="font-bold text-sm">{message}</p>
-    <button onClick={onClose} className="ml-4 text-gray-400 hover:text-gray-600"><FiX /></button>
+    <button
+      onClick={onClose}
+      className="ml-4 text-gray-400 hover:text-gray-600"
+    >
+      <FiX />
+    </button>
   </div>
 );
 
@@ -35,37 +60,59 @@ const AddRoom: React.FC = () => {
   const [status, setStatus] = useState("Available");
   const [description, setDescription] = useState("");
   const [features, setFeatures] = useState<string[]>([]);
-  
+
   // UI States
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{
+    msg: string;
+    type: "success" | "error";
+  } | null>(null);
 
   // Expanded Amenities
   const allFeatures = [
-    "High-Speed WiFi", "Air Conditioning", "Private Balcony", "Attached Bath",
-    "Study Desk", "Wardrobe", "Mini Fridge", "Smart TV", 
-    "Kitchenette", "Microwave", "Daily Cleaning", "Laundry Access",
-    "Water Heater", "Emergency Alarm", "Keyless Entry", "CCTV Coverage",
-    "Smoke Detector", "Window Curtains", "Bed Linen", "Power Backup"
+    "High-Speed WiFi",
+    "Air Conditioning",
+    "Private Balcony",
+    "Attached Bath",
+    "Study Desk",
+    "Wardrobe",
+    "Mini Fridge",
+    "Smart TV",
+    "Kitchenette",
+    "Microwave",
+    "Daily Cleaning",
+    "Laundry Access",
+    "Water Heater",
+    "Emergency Alarm",
+    "Keyless Entry",
+    "CCTV Coverage",
+    "Smoke Detector",
+    "Window Curtains",
+    "Bed Linen",
+    "Power Backup",
   ];
 
-  const showToast = (msg: string, type: 'success' | 'error') => {
+  const showToast = (msg: string, type: "success" | "error") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 5000);
   };
 
   const toggleFeature = (feature: string) => {
     setFeatures((prev) =>
-      prev.includes(feature) ? prev.filter((f) => f !== feature) : [...prev, feature]
+      prev.includes(feature)
+        ? prev.filter((f) => f !== feature)
+        : [...prev, feature],
     );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Feature Validation
-    if (Number(monthlyRent) <= 0) return showToast("Rent must be greater than 0", "error");
-    if (Number(capacity) <= 0) return showToast("Capacity must be at least 1", "error");
+    if (Number(monthlyRent) <= 0)
+      return showToast("Rent must be greater than 0", "error");
+    if (Number(capacity) <= 0)
+      return showToast("Capacity must be at least 1", "error");
 
     setLoading(true);
     try {
@@ -80,12 +127,14 @@ const AddRoom: React.FC = () => {
         status,
         description,
         features,
-        searchKeywords: [roomNumber, roomType, floor].map(s => s.toLowerCase()),
+        searchKeywords: [roomNumber, roomType, floor].map((s) =>
+          s.toLowerCase(),
+        ),
         createdAt: serverTimestamp(),
       });
 
       showToast(`Room ${roomNumber} has been successfully added!`, "success");
-      
+
       // Reset form
       setRoomNumber("");
       setMonthlyRent("");
@@ -104,7 +153,13 @@ const AddRoom: React.FC = () => {
   return (
     <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Notifications */}
-      {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && (
+        <Toast
+          message={toast.msg}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
 
       <div className="p-8 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800">
         <div className="flex items-center gap-4">
@@ -112,8 +167,12 @@ const AddRoom: React.FC = () => {
             <FiHome />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Room Registration</h2>
-            <p className="text-sm text-gray-500 font-medium">Add new accommodation units to the inventory</p>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+              Room Registration
+            </h2>
+            <p className="text-sm text-gray-500 font-medium">
+              Add new accommodation units to the inventory
+            </p>
           </div>
         </div>
       </div>
@@ -126,15 +185,27 @@ const AddRoom: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="group">
-              <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Room Identity</label>
-              <input required type="text" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)}
+              <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">
+                Room Identity
+              </label>
+              <input
+                required
+                type="text"
+                value={roomNumber}
+                onChange={(e) => setRoomNumber(e.target.value)}
                 className="w-full px-5 py-4 border-2 border-gray-100 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-900 focus:border-[#00CFFF] focus:bg-white dark:focus:bg-gray-800 outline-none transition-all"
-                placeholder="e.g. 104-B" />
+                placeholder="e.g. 104-B"
+              />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Room Category</label>
-              <select value={roomType} onChange={(e) => setRoomType(e.target.value)}
-                className="w-full px-5 py-4 border-2 border-gray-100 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-900 focus:border-[#00CFFF] outline-none transition-all cursor-pointer">
+              <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">
+                Room Category
+              </label>
+              <select
+                value={roomType}
+                onChange={(e) => setRoomType(e.target.value)}
+                className="w-full px-5 py-4 border-2 border-gray-100 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-900 focus:border-[#00CFFF] outline-none transition-all cursor-pointer"
+              >
                 <option>Single Room</option>
                 <option>Double Room</option>
                 <option>Triple Room</option>
@@ -142,10 +213,17 @@ const AddRoom: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Monthly Rate (GH₵)</label>
-              <input required type="number" value={monthlyRent} onChange={(e) => setMonthlyRent(e.target.value)}
+              <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">
+                Monthly Rate (GH₵)
+              </label>
+              <input
+                required
+                type="number"
+                value={monthlyRent}
+                onChange={(e) => setMonthlyRent(e.target.value)}
                 className="w-full px-5 py-4 border-2 border-gray-100 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-900 focus:border-[#00CFFF] outline-none transition-all"
-                placeholder="0.00" />
+                placeholder="0.00"
+              />
             </div>
           </div>
         </section>
@@ -190,12 +268,17 @@ const AddRoom: React.FC = () => {
               </label>
             ))}
           </div>
-        </section>
+        </div>
 
         {/* SECTION 4: REMARKS */}
         <div className="bg-gray-50 dark:bg-gray-900/50 p-6 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
-          <label className="block text-[10px] font-black text-gray-400 uppercase mb-3 ml-1">Public Description & Special Notes</label>
-          <textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)}
+          <label className="block text-[10px] font-black text-gray-400 uppercase mb-3 ml-1">
+            Public Description & Special Notes
+          </label>
+          <textarea
+            rows={4}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             className="w-full px-5 py-4 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl focus:border-[#00CFFF] outline-none transition-all resize-none"
             placeholder="Describe the room view, proximity to stairs, or any specific rules for occupants..."
           />
@@ -203,18 +286,26 @@ const AddRoom: React.FC = () => {
 
         {/* FOOTER ACTIONS */}
         <div className="flex flex-col sm:flex-row items-center justify-end gap-6 pt-10 border-t border-gray-100 dark:border-gray-700">
-          <button type="button" onClick={() => window.history.back()}
-            className="text-sm font-black text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 uppercase tracking-widest transition-colors">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="text-sm font-black text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 uppercase tracking-widest transition-colors"
+          >
             Discard Entry
           </button>
-          <button type="submit" disabled={loading}
-            className="w-full sm:w-auto px-12 py-5 bg-[#00CFFF] text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-[#00CFFF]/30 hover:shadow-[#00CFFF]/40 hover:-translate-y-1 active:translate-y-0 transition-all disabled:opacity-50 disabled:transform-none">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full sm:w-auto px-12 py-5 bg-[#00CFFF] text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-[#00CFFF]/30 hover:shadow-[#00CFFF]/40 hover:-translate-y-1 active:translate-y-0 transition-all disabled:opacity-50 disabled:transform-none"
+          >
             {loading ? (
               <span className="flex items-center gap-3">
                 <div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full"></div>
                 Syncing...
               </span>
-            ) : "Save & Publish Room"}
+            ) : (
+              "Save & Publish Room"
+            )}
           </button>
         </div>
       </form>
