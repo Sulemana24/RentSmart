@@ -5,6 +5,7 @@ import "@/styles/globals.css";
 import { ToastProvider } from "@/components/ToastProvider";
 import { AuthProvider } from "@/lib/auth-context";
 import { useEffect, useState } from "react";
+import { UserPlanProvider } from "@/lib/user-plan-context";
 
 function DarkModeWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -44,13 +45,15 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
 
       <AuthProvider>
-        <DarkModeWrapper>
-          <ToastProvider>
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
-          </ToastProvider>
-        </DarkModeWrapper>
+        <UserPlanProvider>
+          <DarkModeWrapper>
+            <ToastProvider>
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </ToastProvider>
+          </DarkModeWrapper>
+        </UserPlanProvider>
       </AuthProvider>
     </>
   );

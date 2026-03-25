@@ -1,7 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { UploadButton } from "@uploadthing/react";
 import type { OurFileRouter } from "@/lib/uploadthing";
 
@@ -57,12 +66,41 @@ import {
 import { TbFridge } from "react-icons/tb";
 import { useToast } from "../../../../components/ToastProvider";
 import { IoBedOutline } from "react-icons/io5";
+import { useUserPlan } from "@/lib/user-plan-context";
+import { canAddProperty, getRemainingProperties } from "@/utils/plans";
+import UpgradePlanModal from "@/components/UpgradePlanModal";
 
-interface PropertyFormProps {
-  onSubmit: (formData: any) => void;
+interface Property {
+  id: string;
+  name: string;
+  host: string;
+  hostId: string;
+  price: number;
+  beds: number;
+  washrooms: number;
+  agentFeePercentage: number;
+  walkingFee: number;
+  discount: string;
+  address: {
+    state: string;
+    city: string;
+    country: string;
+  };
+  description: string;
+  category: string[];
+  images: string[];
+  image: string;
+  amenities: string[];
+  acceptableDurations: number[];
+  featured: boolean;
+  videos: string[];
+  hasVirtualTour: boolean;
+  rating?: number;
+  reviews?: any[];
+  createdAt?: any;
 }
 
-const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
+const PropertyForm = ({ onSubmit }: { onSubmit?: (formData: any) => void }) => {
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [selectedDurations, setSelectedDurations] = useState<number[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -77,6 +115,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
   const { showToast } = useToast();
   const [categoryInput, setCategoryInput] = useState("");
   const [videoInput, setVideoInput] = useState("");
+  const { userPlan, loading: planLoading } = useUserPlan();
+  const [existingProperties, setExistingProperties] = useState<Property[]>([]);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -100,6 +142,14 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
     { id: 5, name: "Finish", icon: <FiCheckCircle className="w-5 h-5" /> },
   ];
 
+  // Get current user
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     const fetchUser = async () => {
       const user = auth.currentUser;
@@ -117,6 +167,41 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
     };
     fetchUser();
   }, []);
+
+  // Fetch existing property count
+  useEffect(() => {
+    const fetchPropertyCount = async () => {
+      const user = auth.currentUser;
+      if (!user?.uid) return;
+
+      try {
+        const q = query(
+          collection(db, "properties"),
+          where("hostId", "==", user.uid),
+        );
+        const snapshot = await getDocs(q);
+        setExistingProperties(
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Property[],
+        );
+      } catch (error) {
+        console.error("Error fetching property count:", error);
+      }
+    };
+
+    fetchPropertyCount();
+  }, []);
+
+  // Check if user can add more properties
+  const canAddMore = userPlan
+    ? canAddProperty(existingProperties.length, userPlan.planId)
+    : true;
+
+  const remainingSlots = userPlan
+    ? getRemainingProperties(existingProperties.length, userPlan.planId)
+    : 5;
 
   const validateForm = (formObject: any) => {
     const errors: string[] = [];
@@ -149,13 +234,24 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check property limit first
+    if (!canAddMore) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     setLoading(true);
 
     const formObject = form;
 
     const errors = validateForm(formObject);
     if (errors.length > 0) {
-      alert(errors.join("\n"));
+      showToast({
+        title: "Validation Error",
+        message: errors.join("\n"),
+        type: "error",
+      });
       setLoading(false);
       return;
     }
@@ -175,6 +271,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
       walkingFee: parseInt(formObject.walkingFee) || 0,
       acceptableDurations: selectedDurations,
       beds: parseInt(formObject.beds) || 0,
+      washrooms: parseInt(formObject.washrooms) || 0,
       image: uploadedImages[0] || "",
       images: uploadedImages,
       discount: formObject.discount || "",
@@ -186,7 +283,6 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
       createdAt: serverTimestamp(),
       hostId: auth.currentUser?.uid || "",
       videos: uploadedVideos,
-      washrooms: parseInt(formObject.washrooms) || 0,
       hasVirtualTour: uploadedVideos.length > 0,
     };
 
@@ -194,20 +290,27 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
       const newDocRef = doc(db, "properties", propertyData.id);
       await setDoc(newDocRef, propertyData);
       showToast({
-        title: "Sucess",
+        title: "Success",
         message: "Property added successfully!",
+        type: "success",
       });
 
       if (onSubmit) onSubmit(propertyData);
+
+      // Reset form or redirect
+      setTimeout(() => {
+        window.location.href = "/homeowner/page";
+      }, 2000);
     } catch (error: any) {
       showToast({
         title: "Property Creation Failed",
         message:
           "An error occurred while adding the property: " + error.message,
+        type: "error",
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const toggleAmenity = (amenity: string) => {
@@ -286,41 +389,17 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
       return `https://www.youtube.com/embed/${id}`;
     }
     if (url.includes("youtube.com/watch")) {
-      const id = new URL(url).searchParams.get("v");
-      return `https://www.youtube.com/embed/${id}`;
+      try {
+        const id = new URL(url).searchParams.get("v");
+        return `https://www.youtube.com/embed/${id}`;
+      } catch {
+        return url;
+      }
     }
     if (url.includes("tiktok.com/")) {
       return url.replace(/\/v\/|\/video\//, "/embed/");
     }
     return url;
-  }
-
-  async function uploadVideoToYouTube(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingVideos(true);
-
-    const form = new FormData();
-    form.append("video", file);
-
-    const res = await fetch("/api/youtube/upload", {
-      method: "POST",
-      body: form,
-    });
-
-    const data = await res.json();
-
-    if (data.url) {
-      setUploadedVideos((prev) => [...prev, data.url]);
-    } else {
-      showToast({
-        title: "Upload failed",
-        message: "Could not upload to YouTube",
-      });
-    }
-
-    setUploadingVideos(false);
   }
 
   const StepProgress = () => (
@@ -422,16 +501,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   type="text"
                   name="host"
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Loading..."
                   value={form.host}
                   onChange={(e) => setForm({ ...form, host: e.target.value })}
                   required
                 />
-                {loading && (
-                  <p className="text-xs text-gray-500">
-                    Fetching hostel name...
-                  </p>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -710,7 +783,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
 
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex flex-col md:flex-row items-center gap-3 mb-6">
-                <div className="hidden md:blockp-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <div className="hidden md:block p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <FiCheck className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
@@ -794,6 +867,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                         showToast({
                           title: "Image upload failed",
                           message: error.message,
+                          type: "error",
                         });
                       }}
                       appearance={{
@@ -890,6 +964,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                     showToast({
                       title: "Invalid URL",
                       message: "Enter a valid YouTube or TikTok link",
+                      type: "error",
                     });
                     return;
                   }
@@ -971,43 +1046,31 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 ))}
               </div>
             </div>
-            <div className="space-y-3 md:col-span-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
-                <FiStar className="w-4 h-4 text-amber-500" />
-                Featured Property
-              </label>
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200 dark:border-amber-800/50 transition-all duration-200 hover:shadow-md">
-                <input
-                  type="checkbox"
-                  checked={featured}
-                  onChange={(e) => setFeatured(e.target.checked)}
-                  className="mt-0.5 w-5 h-5 rounded border-amber-300 dark:border-amber-600 text-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-0 cursor-pointer transition-all duration-200"
-                />
-                <div className="flex flex-col gap-1">
-                  <span className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    Mark this property as featured to show it on the homepage or
-                    highlight it.
-                  </span>
-                  <span className="text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-3 py-1.5 rounded-lg inline-flex items-center gap-2 w-fit">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    Featured properties incur a monthly fee of{" "}
-                    <strong>GHC 30.00</strong>
-                  </span>
+
+            {/* Featured Property Banner */}
+            {!planLoading && userPlan && !canAddMore && (
+              <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-yellow-600 dark:text-yellow-400 font-medium">
+                      You've reached your property limit (
+                      {existingProperties.length}/{userPlan.maxProperties})
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Upgrade to{" "}
+                      {userPlan.maxProperties === 5 ? "Agent Pro" : "Agency"}{" "}
+                      plan to add more properties
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:shadow-lg transition-all"
+                  >
+                    Upgrade Now
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         );
 
@@ -1065,9 +1128,9 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
             ) : (
               <button
                 type="submit"
-                disabled={loading || uploadedImages.length === 0}
+                disabled={loading || uploadedImages.length === 0 || !canAddMore}
                 className={`px-8 py-3 rounded-xl font-bold transition-all duration-300 flex items-center gap-2 ${
-                  loading || uploadedImages.length === 0
+                  loading || uploadedImages.length === 0 || !canAddMore
                     ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                     : "bg-green-600 text-white hover:bg-green-700 hover:shadow-lg"
                 }`}
@@ -1079,6 +1142,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   </>
                 ) : uploadedImages.length === 0 ? (
                   "Upload Images First"
+                ) : !canAddMore ? (
+                  "Upgrade to Add More"
                 ) : (
                   <>
                     <FiCheck className="w-4 h-4" />
@@ -1094,6 +1159,13 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
           <div className="mt-4 text-sm text-red-500 dark:text-red-400 text-center flex items-center justify-center gap-2">
             <FiImage className="w-4 h-4" />
             Please upload at least one property image before submitting
+          </div>
+        )}
+
+        {!canAddMore && activeStep === 5 && (
+          <div className="mt-4 text-sm text-yellow-600 dark:text-yellow-400 text-center flex items-center justify-center gap-2">
+            <FiStar className="w-4 h-4" />
+            You've reached your property limit. Upgrade to add more properties.
           </div>
         )}
       </div>
@@ -1127,6 +1199,32 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
         type="hidden"
         name="videos"
         value={JSON.stringify(uploadedVideos)}
+      />
+
+      <UpgradePlanModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPropertyCount={existingProperties.length}
+        onUpgradeComplete={() => {
+          // Refresh property count after upgrade
+          const fetchPropertyCount = async () => {
+            const user = auth.currentUser;
+            if (!user?.uid) return;
+            const q = query(
+              collection(db, "properties"),
+              where("hostId", "==", user.uid),
+            );
+            const snapshot = await getDocs(q);
+            setExistingProperties(
+              snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              })) as Property[],
+            );
+          };
+          fetchPropertyCount();
+          setShowUpgradeModal(false);
+        }}
       />
     </form>
   );

@@ -112,7 +112,7 @@ const Footer: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    AAMUSTED, Tanoso
+                    USTED, Tanoso
                   </p>
                   <p className="text-gray-600 dark:text-gray-300 text-sm">
                     Kumasi

@@ -172,7 +172,7 @@ export default function Home() {
             <div className="inline-flex items-center gap-3 bg-white/5 backdrop-blur-sm px-5 py-3 rounded-full border border-white/10 mb-8">
               <HiOutlineFire className="w-5 h-5 text-[#FF4FA1]" />
               <span className="text-sm font-medium text-white">
-                200+ Premium Properties Available
+                {totalProperties}+ Premium Properties Available
               </span>
             </div>
 
