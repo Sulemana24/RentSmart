@@ -76,6 +76,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
   const [showVideoUpload, setShowVideoUpload] = useState(false);
   const { showToast } = useToast();
   const [categoryInput, setCategoryInput] = useState("");
+  const [videoInput, setVideoInput] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -149,14 +150,9 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const formData = new FormData(e.target as HTMLFormElement);
 
-    const formObject: Record<string, string> = {};
-    formData.forEach((value, key) => {
-      if (typeof value === "string") {
-        formObject[key] = value;
-      }
-    });
+    const formObject = form;
+
     const errors = validateForm(formObject);
     if (errors.length > 0) {
       alert(errors.join("\n"));
@@ -197,7 +193,11 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
     try {
       const newDocRef = doc(db, "properties", propertyData.id);
       await setDoc(newDocRef, propertyData);
-      alert("Property added successfully!");
+      showToast({
+        title: "Sucess",
+        message: "Property added successfully!",
+      });
+
       if (onSubmit) onSubmit(propertyData);
     } catch (error: any) {
       showToast({
@@ -272,21 +272,26 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
 
   const durationOptions = [6, 12, 18, 24, 36, 48, 60];
 
-  function isValidYouTubeUrl(url: string) {
-    return url.includes("youtube.com/watch") || url.includes("youtu.be/");
+  function isValidVideoUrl(url: string) {
+    return (
+      url.includes("youtube.com/watch") ||
+      url.includes("youtu.be/") ||
+      url.includes("tiktok.com/")
+    );
   }
 
   function convertToEmbedUrl(url: string) {
     if (url.includes("youtu.be/")) {
-      const id = url.split("youtu.be/")[1];
+      const id = url.split("youtu.be/")[1].split(/[?&]/)[0];
       return `https://www.youtube.com/embed/${id}`;
     }
-
-    if (url.includes("watch?v=")) {
+    if (url.includes("youtube.com/watch")) {
       const id = new URL(url).searchParams.get("v");
       return `https://www.youtube.com/embed/${id}`;
     }
-
+    if (url.includes("tiktok.com/")) {
+      return url.replace(/\/v\/|\/video\//, "/embed/");
+    }
     return url;
   }
 
@@ -400,6 +405,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <input
                   type="text"
                   name="name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Villa Ocean Breeze"
                   required
@@ -439,6 +446,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   <input
                     type="number"
                     name="price"
+                    value={form.price}
+                    onChange={(e) =>
+                      setForm({ ...form, price: e.target.value })
+                    }
                     className="w-full pl-10 pr-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="3200"
                     required
@@ -455,6 +466,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <input
                   type="number"
                   name="beds"
+                  value={form.beds}
+                  onChange={(e) => setForm({ ...form, beds: e.target.value })}
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="3"
                   required
@@ -470,11 +483,14 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <input
                   type="number"
                   name="washrooms"
+                  value={form.washrooms}
+                  onChange={(e) =>
+                    setForm({ ...form, washrooms: e.target.value })
+                  }
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="3"
                   required
                   min="0"
-                  id="quantity"
                 />
               </div>
 
@@ -487,6 +503,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   <input
                     type="number"
                     name="agentFeePercentage"
+                    value={form.agentFeePercentage}
+                    onChange={(e) =>
+                      setForm({ ...form, agentFeePercentage: e.target.value })
+                    }
                     className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="5"
                     min="0"
@@ -510,6 +530,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                   <input
                     type="number"
                     name="walkingFee"
+                    value={form.walkingFee}
+                    onChange={(e) =>
+                      setForm({ ...form, walkingFee: e.target.value })
+                    }
                     className="w-full pl-10 pr-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="50"
                     min="0"
@@ -524,10 +548,16 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 </label>
                 <div className="relative">
                   <input
-                    type="text"
+                    type="number"
                     name="discount"
-                    className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    value={form.discount}
+                    onChange={(e) =>
+                      setForm({ ...form, discount: e.target.value })
+                    }
+                    min="0"
+                    max="100"
                     placeholder="10"
+                    className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                   <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
                     % off
@@ -567,6 +597,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 <input
                   type="text"
                   name="state"
+                  value={form.state}
+                  onChange={(e) => setForm({ ...form, state: e.target.value })}
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Greater Accra Region"
                   required
@@ -596,6 +628,10 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                 </label>
                 <textarea
                   name="description"
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm({ ...form, description: e.target.value })
+                  }
                   rows={6}
                   className="w-full px-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Describe your property in detail. Include features, unique selling points, nearby amenities, and any special notes..."
@@ -715,6 +751,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
       case 4:
         return (
           <div className="space-y-6">
+            {/* Property Images */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
               <div className="flex flex-col md:flex-row items-center gap-3 mb-6">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
@@ -749,9 +786,7 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                       onClientUploadComplete={(res) => {
                         setUploadingImages(false);
                         if (!res) return;
-
                         const urls = res.map((f) => f.url);
-
                         setUploadedImages((prev) => [...prev, ...urls]);
                       }}
                       onUploadError={(error) => {
@@ -762,7 +797,8 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                         });
                       }}
                       appearance={{
-                        button: "bg-blue-600 text-white",
+                        button:
+                          "bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors",
                         allowedContent: "text-gray-500",
                       }}
                     />
@@ -824,191 +860,73 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-                <div className="flex flex-col md:flex-row items-center gap-3">
-                  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                    <FiVideo className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      Property Videos
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Upload property walkthrough or tour videos
-                    </p>
-                  </div>
+              <div className="flex flex-col md:flex-row items-center gap-3 mb-6">
+                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <FiVideo className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowVideoUpload(!showVideoUpload)}
-                  className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800/40 transition-colors flex justify-center items-center mt-6 gap-2"
-                >
-                  <FiVideo className="w-4 h-4" />
-                  {showVideoUpload ? "Hide" : "Add Videos"}
-                </button>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Property Video
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Paste a single YouTube or TikTok link to showcase your
+                    property
+                  </p>
+                </div>
               </div>
 
-              {showVideoUpload && (
-                <div className="space-y-6">
-                  <div className="border-2 border-dashed border-purple-200 dark:border-purple-700 rounded-2xl p-6 bg-purple-50 dark:bg-purple-900/10">
-                    <div className="flex flex-col items-center justify-center gap-4">
-                      <FiUpload className="w-12 h-12 text-purple-400 dark:text-purple-500" />
-                      <div>
-                        <p className="text-gray-700 dark:text-gray-300 font-medium mb-1">
-                          Upload Property Videos
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          MP4, MOV, WEBM up to 50MB • Max 1 video
-                        </p>
-                      </div>
+              <input
+                type="url"
+                placeholder="Paste YouTube or TikTok link"
+                className="w-full px-4 py-3 border border-purple-200 dark:border-purple-700 rounded-xl mb-4 text-black"
+                value={videoInput}
+                onChange={(e) => setVideoInput(e.target.value)}
+              />
 
-                      <div className="flex flex-col gap-4 w-full max-w-md">
-                        <input
-                          type="url"
-                          placeholder="Paste YouTube link"
-                          className="w-full px-4 py-3 border border-purple-200 dark:border-purple-700 rounded-xl"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              const url = (
-                                e.target as HTMLInputElement
-                              ).value.trim();
-                              if (!isValidYouTubeUrl(url)) return;
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isValidVideoUrl(videoInput)) {
+                    showToast({
+                      title: "Invalid URL",
+                      message: "Enter a valid YouTube or TikTok link",
+                    });
+                    return;
+                  }
 
-                              setUploadedVideos((prev) => [...prev, url]);
-                              (e.target as HTMLInputElement).value = "";
-                            }
-                          }}
-                        />
+                  setUploadedVideos((prev) => [...prev, videoInput]);
+                  setVideoInput("");
+                }}
+                className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg"
+              >
+                Add Video
+              </button>
 
-                        <div className="flex items-center gap-3 text-sm text-gray-500">
-                          <div className="flex-1 h-px bg-gray-300" />
-                          OR
-                          <div className="flex-1 h-px bg-gray-300" />
-                        </div>
+              {uploadedVideos.map((video, index) => (
+                <div key={index} className="mt-3 flex items-center gap-2">
+                  <span className="text-sm">{video}</span>
+                  <button onClick={() => removeVideo(index)}>
+                    <FiTrash2 />
+                  </button>
+                </div>
+              ))}
 
-                        <input
-                          type="file"
-                          accept="video/*"
-                          onChange={uploadVideoToYouTube}
-                          className="hidden"
-                          id="youtubeUpload"
-                        />
-
-                        <label
-                          htmlFor="youtubeUpload"
-                          className="cursor-pointer px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium flex items-center justify-center gap-2"
-                        >
-                          <FiYoutube className="w-5 h-5" />
-                          Upload directly to YouTube
-                        </label>
-                      </div>
-
-                      {uploadingVideos && (
-                        <div className="text-sm text-purple-600 dark:text-purple-400 font-medium flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                          Uploading video...
-                        </div>
-                      )}
-                    </div>
+              {isValidVideoUrl(videoInput) && (
+                <div className="mt-6">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-4">
+                    Video Preview
+                  </h4>
+                  <div className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-black">
+                    <iframe
+                      src={convertToEmbedUrl(videoInput)}
+                      className="w-full h-full"
+                      allowFullScreen
+                    />
                   </div>
-
-                  {uploadedVideos.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-4">
-                        Uploaded Videos ({uploadedVideos.length})
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {uploadedVideos.map((url, index) => {
-                          const videoName = `Property Tour ${index + 1}`;
-                          const videoExtension =
-                            url.split(".").pop()?.toUpperCase() || "VIDEO";
-
-                          return (
-                            <div key={index} className="relative group">
-                              <div className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
-                                <div className="aspect-video relative bg-gradient-to-br from-purple-900/20 to-gray-900/20">
-                                  <div className="w-full h-full flex flex-col items-center justify-center p-8">
-                                    <FiVideo className="w-12 h-12 text-purple-400 dark:text-purple-300 mb-4" />
-                                    <div className="text-center">
-                                      <p className="font-medium text-gray-900 dark:text-white">
-                                        {videoName}
-                                      </p>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        Click to preview • {videoExtension}
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="p-4 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition-colors cursor-pointer opacity-0 group-hover:opacity-100">
-                                      <FiPlay className="w-8 h-8" />
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="p-4 bg-white dark:bg-gray-900">
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                        Video {index + 1}
-                                      </span>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
-                                        {url.split("/").pop()}
-                                      </p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                      <a
-                                        href={url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="p-1.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                                        title="View full video"
-                                      >
-                                        <FiExternalLink className="w-4 h-4" />
-                                      </a>
-                                      <button
-                                        type="button"
-                                        onClick={() => removeVideo(index)}
-                                        className="p-1.5 bg-red-100 dark:bg-red-900/20 text-red-500 hover:text-red-600 transition-colors rounded-lg"
-                                        title="Remove video"
-                                      >
-                                        <FiTrash2 className="w-4 h-4" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="absolute top-2 left-2 px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg shadow-sm flex items-center gap-1">
-                                <FiVideo className="w-3 h-3" />
-                                VIDEO
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {uploadedVideos.length > 0 && (
-                        <div className="mt-6">
-                          <h4 className="font-medium text-gray-900 dark:text-white mb-4">
-                            Video Preview
-                          </h4>
-                          <div className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-black">
-                            <iframe
-                              src={convertToEmbedUrl(uploadedVideos[0])}
-                              className="w-full h-full"
-                              allowFullScreen
-                            />
-                          </div>
-                          <p className="text-sm text-purple-600 dark:text-purple-400 mt-3 flex items-center gap-2">
-                            <FiVideo className="w-4 h-4" />
-                            Virtual tours can increase booking rates by up to
-                            40%
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <p className="text-sm text-purple-600 dark:text-purple-400 mt-3 flex items-center gap-2">
+                    <FiVideo className="w-4 h-4" />
+                    Virtual tour can increase booking rates by up to 40%
+                  </p>
                 </div>
               )}
             </div>
@@ -1051,6 +969,43 @@ const PropertyForm = ({ onSubmit }: PropertyFormProps) => {
                     {duration} {duration === 1 ? "Month" : "Months"}
                   </button>
                 ))}
+              </div>
+            </div>
+            <div className="space-y-3 md:col-span-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                <FiStar className="w-4 h-4 text-amber-500" />
+                Featured Property
+              </label>
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200 dark:border-amber-800/50 transition-all duration-200 hover:shadow-md">
+                <input
+                  type="checkbox"
+                  checked={featured}
+                  onChange={(e) => setFeatured(e.target.checked)}
+                  className="mt-0.5 w-5 h-5 rounded border-amber-300 dark:border-amber-600 text-amber-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-0 cursor-pointer transition-all duration-200"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    Mark this property as featured to show it on the homepage or
+                    highlight it.
+                  </span>
+                  <span className="text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-3 py-1.5 rounded-lg inline-flex items-center gap-2 w-fit">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Featured properties incur a monthly fee of{" "}
+                    <strong>GHC 30.00</strong>
+                  </span>
+                </div>
               </div>
             </div>
           </div>

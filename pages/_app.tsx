@@ -3,6 +3,7 @@ import type { AppProps } from "next/app";
 import Head from "next/head";
 import "@/styles/globals.css";
 import { ToastProvider } from "@/components/ToastProvider";
+import { AuthProvider } from "@/lib/auth-context";
 import { useEffect, useState } from "react";
 
 function DarkModeWrapper({ children }: { children: React.ReactNode }) {
@@ -42,13 +43,15 @@ export default function App({ Component, pageProps }: AppProps) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <DarkModeWrapper>
-        <ToastProvider>
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </ToastProvider>
-      </DarkModeWrapper>
+      <AuthProvider>
+        <DarkModeWrapper>
+          <ToastProvider>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </ToastProvider>
+        </DarkModeWrapper>
+      </AuthProvider>
     </>
   );
 }

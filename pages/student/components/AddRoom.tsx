@@ -1,4 +1,7 @@
 "use client";
+import { useState } from "react";
+import { FaHome, FaMoneyBill } from "react-icons/fa";
+import { CiImageOn } from "react-icons/ci";
 
 import React, { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
@@ -151,21 +154,32 @@ const AddRoom: React.FC = () => {
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Room Features
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {[
               "AC",
               "Attached Bath",
               "Study Table",
+              "Chair",
               "Wardrobe",
               "WiFi",
               "TV",
               "Fridge",
               "Balcony",
+              "24/7 Security",
+              "Parking",
+              "Laundry Service",
+              "24/7 Water Supply",
+              "Power Backup",
+              "Transport Access",
+              "Trash bins",
               "Free Cleaning",
             ].map((feature) => (
-              <label key={feature} className="flex items-center gap-2">
-                <input type="checkbox" className="rounded" />
-                <span className="text-gray-700 dark:text-gray-300">
+              <label
+                key={feature}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <input type="checkbox" className="rounded cursor-pointer" />
+                <span className="text-sm text-gray-700 dark:text-gray-300">
                   {feature}
                 </span>
                 {features.includes(feature) && (

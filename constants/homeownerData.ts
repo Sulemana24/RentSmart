@@ -1,4 +1,3 @@
-// File: data/homeownerData.ts
 export const PROPERTIES = [
   {
     id: "p-1",
