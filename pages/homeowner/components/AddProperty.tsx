@@ -2,9 +2,7 @@
 import PropertyForm from "./forms/PropertyForm";
 
 const AddProperty = () => {
-  const handleSubmit = (formData: any) => {
-    console.log("Form submitted:", formData);
-  };
+  const handleSubmit = (formData: any) => {};
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
