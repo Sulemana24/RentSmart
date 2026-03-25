@@ -68,7 +68,10 @@ export default function PropertyDetail({ property }: { property: any }) {
           setVideoUrl(data.videoUrl || "");
         }
       } catch (error) {
-        console.error("Error fetching video URL:", error);
+        showToast({
+          title: "Error",
+          message: "Error fetching video URL",
+        });
       }
     };
 
@@ -153,7 +156,6 @@ export default function PropertyDetail({ property }: { property: any }) {
         message: "Review submitted successfully!",
       });
     } catch (error) {
-      console.error("Error saving review:", error);
       showToast({ title: "Error", message: "Failed to submit review." });
     }
   };
@@ -173,7 +175,7 @@ export default function PropertyDetail({ property }: { property: any }) {
 
     const min = Math.min(...durations);
     const max = Math.max(...durations);
-    return `${min}-${max} year tenancy options`;
+    return `${min}-${max} months tenancy options`;
   };
 
   const getAgentFeeText = () => {
@@ -669,7 +671,7 @@ export default function PropertyDetail({ property }: { property: any }) {
                         Available Durations:
                       </span>
                       <span>
-                        {property.acceptableDurations.join(", ")} year
+                        {property.acceptableDurations.join(", ")} month
                         {property.acceptableDurations.length > 1 ? "s" : ""}
                       </span>
                     </div>
